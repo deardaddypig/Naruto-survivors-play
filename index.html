@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NARUTO SURVIVORS // 3-PLAYER CO-OP 64-BIT</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0b0f17;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #crt-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at center, transparent 62%, rgba(0, 0, 0, 0.52) 100%),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.1) 0px,
+                    rgba(0, 0, 0, 0.1) 1px,
+                    transparent 1px,
+                    transparent 3px
+                );
+            z-index: 5;
+        }
+
+        #damage-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 0 rgba(255, 20, 40, 0);
+            transition: box-shadow 0.12s ease-out;
+            z-index: 6;
+        }
+        .hit-flash {
+            box-shadow: inset 0 0 95px 30px rgba(255, 20, 40, 0.8) !important;
+        }
+
+        /* 遊玩時 HUD */
+        #ui-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+        }
+
+        #xp-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: #0f172a;
+            border-bottom: 3px solid #000;
+        }
+        #xp-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #0284c7, #38bdf8, #bae6fd);
+            box-shadow: 0 0 12px #38bdf8;
+            transition: width 0.15s ease-out;
+        }
+        #xp-label {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 13px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+            letter-spacing: 1.5px;
+        }
+
+        #hud-header {
+            position: absolute;
+            top: 22px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .retro-panel {
+            background: rgba(15, 20, 32, 0.9);
+            border: 3px solid #e2e8f0;
+            box-shadow: 4px 4px 0 #000, inset 0 0 0 2px #334155;
+            padding: 8px 12px;
+        }
+
+        #player-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #portrait-canvas {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
+            border: 2px solid #fbbf24;
+            box-shadow: 2px 2px 0 #000;
+        }
+        .bars-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 190px;
+        }
+        .name-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: bold;
+            color: #fbbf24;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .hp-track {
+            width: 100%;
+            height: 15px;
+            background: #2a0a10;
+            border: 2px solid #000;
+            position: relative;
+        }
+        #hud-hp-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+            transition: width 0.12s;
+        }
+        #hud-hp-text {
+            position: absolute;
+            inset: 0;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 12px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+        }
+        #weapon-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 2px;
+        }
+        .w-badge {
+            background: #0f172a;
+            border: 1px solid #64748b;
+            padding: 2px 6px;
+            font-size: 11px;
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        /* 隊友狀態列 */
+        #teammates-hud {
+            position: absolute;
+            top: 115px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ally-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 2px solid #64748b;
+            padding: 5px 10px;
+            font-size: 12px;
+            min-width: 170px;
+            box-shadow: 3px 3px 0 #000;
+        }
+        .ally-card.downed {
+            border-color: #ef4444;
+            animation: blinkDown 0.8s infinite alternate;
+        }
+        @keyframes blinkDown {
+            from { background: rgba(127, 29, 29, 0.85); }
+            to { background: rgba(15, 23, 42, 0.85); }
+        }
+
+        #timer-panel {
+            text-align: center;
+            min-width: 155px;
+        }
+        #ui-time {
+            font-size: 26px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            letter-spacing: 2px;
+        }
+        #wave-tag {
+            font-size: 11px;
+            color: #fb923c;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        #stats-panel {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .stat-item span {
+            color: #fbbf24;
+        }
+        #btn-sfx {
+            pointer-events: auto;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 2px solid #94a3b8;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        /* 彈出視窗 */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, #161c2c 0%, #0b0f19 100%);
+            border: 4px solid #fbbf24;
+            box-shadow: 0 0 0 4px #000, 12px 12px 0 rgba(0, 0, 0, 0.88);
+            padding: 22px 26px;
+            text-align: center;
+            pointer-events: auto;
+            width: 94%;
+            max-width: 680px;
+            max-height: 92vh;
+            overflow-y: auto;
+            z-index: 20;
+        }
+
+        .badge-sub {
+            display: inline-block;
+            background: #dc2626;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border: 2px solid #fff;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            color: #fbbf24;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 0 #b91c1c, 5px 5px 0 #000;
+            font-size: 32px;
+            margin: 2px 0 6px;
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            color: #38bdf8;
+            text-shadow: 2px 2px 0 #000;
+            font-size: 24px;
+            margin: 0 0 8px;
+        }
+
+        /* 角色選擇卡片列 */
+        .char-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .char-card {
+            background: #1e293b;
+            border: 3px solid #475569;
+            padding: 10px 8px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #000;
+            transition: transform 0.08s, border-color 0.08s;
+        }
+        .char-card:hover {
+            transform: translateY(-2px);
+            border-color: #94a3b8;
+        }
+        .char-card.selected {
+            border-color: #fbbf24;
+            background: #283548;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.35), 4px 4px 0 #000;
+        }
+        .char-preview {
+            width: 64px;
+            height: 68px;
+            margin: 0 auto 6px;
+            display: block;
+        }
+        .char-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+        .char-role {
+            font-size: 11px;
+            color: #38bdf8;
+            margin: 3px 0;
+        }
+        .char-desc {
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        /* 連線設定與房間控制 */
+        .server-bar {
+            background: rgba(0, 0, 0, 0.45);
+            border: 2px solid #334155;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .retro-input {
+            background: #0f172a;
+            border: 2px solid #64748b;
+            color: #fff;
+            padding: 6px 10px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+        .retro-input:focus {
+            border-color: #fbbf24;
+        }
+
+        .coop-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+            color: #111;
+            border: 3px solid #fff;
+            padding: 10px 18px;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #000;
+        }
+        .action-btn:hover {
+            background: #fde047;
+            transform: translate(-1px, -1px);
+        }
+        .action-btn.blue {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            color: #fff;
+        }
+        .action-btn.gray {
+            background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+            color: #fff;
+        }
+
+        /* 房間大廳列表 */
+        #lobby-box {
+            display: none;
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid #38bdf8;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .room-code-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ade80;
+            letter-spacing: 4px;
+            margin: 4px 0 10px;
+        }
+        .lobby-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .slot-item {
+            background: #1e293b;
+            border: 2px solid #475569;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        /* 升級三選一卡片 */
+        #upgrade-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .upgrade-card {
+            background: #1e293b;
+            border: 3px solid #64748b;
+            padding: 10px 14px;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 4px 4px 0 #000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .upgrade-card:hover {
+            background: #273549;
+            border-color: #fbbf24;
+            transform: translateX(4px);
+        }
+        .upgrade-icon-box {
+            width: 44px;
+            height: 44px;
+            background: #0f172a;
+            border: 2px solid #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .upgrade-icon-box canvas {
+            width: 34px;
+            height: 34px;
+        }
+        .upgrade-title {
+            font-size: 16px;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        .upgrade-desc {
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .summary-cell {
+            background: #1e293b;
+            border: 2px solid #475569;
+            padding: 10px 6px;
+        }
+        .summary-cell .label {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .summary-cell .val {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+    <div id="crt-overlay"></div>
+    <div id="damage-overlay"></div>
+
+    <!-- 遊玩時 HUD -->
+    <div id="ui-layer">
+        <div id="xp-container">
+            <div id="xp-bar"></div>
+            <div id="xp-label">TEAM CHAKRA EXP</div>
+        </div>
+
+        <div id="hud-header">
+            <div id="player-card" class="retro-panel">
+                <canvas id="portrait-canvas" width="58" height="58"></canvas>
+                <div class="bars-col">
+                    <div class="name-row">
+                        <span id="hud-char-name">UZUMAKI NARUTO</span>
+                        <span id="ui-level">LV.1</span>
+                    </div>
+                    <div class="hp-track">
+                        <div id="hud-hp-fill"></div>
+                        <div id="hud-hp-text">110 / 110</div>
+                    </div>
+                    <div id="weapon-badges"></div>
+                </div>
+            </div>
+
+            <div id="timer-panel" class="retro-panel">
+                <div id="ui-time">00:00</div>
+                <div id="wave-tag">木葉防衛 • 第 1 波</div>
+            </div>
+
+            <div id="stats-panel" class="retro-panel">
+                <div class="stat-item">全隊擊破: <span id="ui-kills">0</span></div>
+                <button id="btn-sfx" onclick="toggleSfx()">SFX: ON</button>
+            </div>
+        </div>
+
+        <!-- 連線隊友即時血量與救援狀態 -->
+        <div id="teammates-hud"></div>
+    </div>
+
+    <!-- 主選單與 3 人連線大廳 -->
+    <div id="menu-start" class="modal">
+        <div class="badge-sub">KONOHA 3-PLAYER ONLINE CO-OP</div>
+        <h1>SHINOBI SURVIVORS</h1>
+        <p style="color:#94a3b8; margin:0 0 8px; font-size:13px;">選擇你的忍者，支援最多 3 人線上合作防衛木葉！</p>
+
+        <!-- 三大忍者選擇 -->
+        <div class="char-grid">
+            <div class="char-card selected" id="card-naruto" onclick="chooseCharacter('naruto')">
+                <canvas class="char-preview" id="prev-naruto" width="76" height="84"></canvas>
+                <div class="char-name">漩渦鳴人</div>
+                <div class="char-role">全能型 • 影分身與螺旋丸</div>
+                <div class="char-desc">手裏劍連射，可召喚多重影分身與螺旋丸領域</div>
+            </div>
+            <div class="char-card" id="card-kakashi" onclick="chooseCharacter('kakashi')">
+                <canvas class="char-preview" id="prev-kakashi" width="76" height="84"></canvas>
+                <div class="char-name">旗木卡卡西</div>
+                <div class="char-role">高爆敏捷 • 雷切與紫電</div>
+                <div class="char-desc">高暴擊苦無，可覺醒環繞雷球與連鎖閃電</div>
+            </div>
+            <div class="char-card" id="card-jiraiya" onclick="chooseCharacter('jiraiya')">
+                <canvas class="char-preview" id="prev-jiraiya" width="80" height="88"></canvas>
+                <div class="char-name">自來也</div>
+                <div class="char-role">重裝範圍 • 火遁大炎彈</div>
+                <div class="char-desc">高血量＋扇形千本散射，可發射範圍爆炸大炎彈</div>
+            </div>
+        </div>
+
+        <!-- 伺服器網址與玩家暱稱設定 -->
+        <div class="server-bar">
+            <span>伺服器:</span>
+            <input type="text" id="input-server" class="retro-input" style="width:240px;" placeholder="填入 Render/Zeabur 網址 (例 https://xxx.onrender.com)">
+            <span>暱稱:</span>
+            <input type="text" id="input-name" class="retro-input" style="width:110px;" maxlength="10" value="木葉忍者">
+            <span id="conn-status" style="color:#fbbf24; font-weight:bold;">未連線</span>
+        </div>
+
+        <!-- 房間按鈕區 -->
+        <div id="room-controls" class="coop-actions">
+            <button class="action-btn" onclick="createOnlineRoom()">建立 3 人房間</button>
+            <input type="text" id="input-room-code" class="retro-input" style="width:110px; text-align:center;" maxlength="4" placeholder="4位房號">
+            <button class="action-btn blue" onclick="joinOnlineRoom()">輸入房號加入</button>
+            <button class="action-btn gray" onclick="startOfflineSolo()">單機模式試玩</button>
+        </div>
+
+        <div id="lobby-error" style="color:#f87171; font-size:13px; margin-top:8px; font-weight:bold;"></div>
+
+        <!-- 房間等待大廳 -->
+        <div id="lobby-box">
+            <div style="font-size:12px; color:#94a3b8;">將此房號分享給最多 2 位好友加入：</div>
+            <div class="room-code-display" id="display-room-code">----</div>
+            <div class="lobby-slots" id="lobby-slots"></div>
+            <button id="btn-host-start" class="action-btn" style="display:none;" onclick="hostStartGame()">全員出發！開始任務</button>
+            <div id="wait-host-msg" style="color:#38bdf8; font-size:13px;">等待房主按下開始任務...</div>
+        </div>
+    </div>
+
+    <!-- 升級三選一畫面 -->
+    <div id="menu-levelup" class="modal" style="display:none;">
+        <div class="badge-sub" style="background:#0284c7;">TEAM CHAKRA AWAKENING</div>
+        <h2 id="levelup-title">LEVEL UP! 忍術覺醒</h2>
+        <p id="levelup-wait-msg" style="color:#cbd5e1; margin:0; font-size:13px;">選擇一項忍術或體術強化：</p>
+        <div id="upgrade-options"></div>
+    </div>
+
+    <!-- Game Over 畫面 -->
+    <div id="menu-gameover" class="modal" style="display:none;">
+        <div class="badge-sub">MISSION FAILED</div>
+        <h1>全隊查克拉耗盡</h1>
+        <div class="summary-grid">
+            <div class="summary-cell">
+                <div class="label">存活時間</div>
+                <div class="val" id="go-time">00:00</div>
+            </div>
+            <div class="summary-cell">
+                <div class="label">全隊等級</div>
+                <div class="val" id="go-level">1</div>
+            </div>
+            <div class="summary-cell">
+                <div class="label">總擊殺數</div>
+                <div class="val" id="go-kills">0</div>
+            </div>
+        </div>
+        <div id="go-scoreboard" style="margin-bottom:14px; font-size:13px; color:#cbd5e1;"></div>
+        <button id="btn-restart" class="action-btn" onclick="handleRestart()">重新挑戰</button>
+    </div>
+
+<script>
+/**
+ * ============================================================================
+ * 1. 復古 16-BIT 合成器音效引擎
+ * ============================================================================
+ */
+let sfxEnabled = true;
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function toggleSfx() {
+    sfxEnabled = !sfxEnabled;
+    document.getElementById('btn-sfx').innerText = `SFX: ${sfxEnabled ? 'ON' : 'OFF'}`;
+}
+
+function playSfx(type) {
+    if (!sfxEnabled || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'kunai') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(920, now);
+        osc.frequency.exponentialRampToValueAtTime(240, now + 0.07);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        osc.start(now);
+        osc.stop(now + 0.07);
+    } else if (type === 'hit') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(65, now + 0.06);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.start(now);
+        osc.stop(now + 0.06);
+    } else if (type === 'gem') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(680, now);
+        osc.frequency.setValueAtTime(1020, now + 0.04);
+        gain.gain.setValueAtTime(0.045, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'rasengan') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(440, now + 0.18);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } else if (type === 'levelup') {
+        osc.type = 'square';
+        [523.25, 659.25, 783.99, 1046.5].forEach((n, idx) => {
+            osc.frequency.setValueAtTime(n, now + idx * 0.07);
+        });
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    } else if (type === 'hurt') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(155, now);
+        osc.frequency.linearRampToValueAtTime(55, now + 0.18);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        osc.start(now);
+        osc.stop(now + 0.18);
+    }
+}
+
+/**
+ * ============================================================================
+ * 2. 高精細點陣角色與敵人烘焙引擎 (鳴人 / 卡卡西 / 自來也 + 白絕 / 叛忍 / 曉)
+ * ============================================================================
+ */
+class PixelBuilder {
+    constructor(w, h) {
+        this.w = w;
+        this.h = h;
+        this.grid = Array.from({ length: h }, () => Array(w).fill(null));
+    }
+    px(x, y, color) {
+        const ix = Math.round(x), iy = Math.round(y);
+        if (ix >= 0 && ix < this.w && iy >= 0 && iy < this.h) this.grid[iy][ix] = color;
+    }
+    rect(x, y, w, h, color) {
+        for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) this.px(x + dx, y + dy, color);
+        }
+    }
+    oval(cx, cy, rx, ry, color) {
+        for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) {
+            for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
+                const nx = (x - cx) / rx, ny = (y - cy) / ry;
+                if (nx * nx + ny * ny <= 1.0) this.px(x, y, color);
+            }
+        }
+    }
+    line(x0, y0, x1, y1, color) {
+        x0 = Math.round(x0); y0 = Math.round(y0);
+        x1 = Math.round(x1); y1 = Math.round(y1);
+        const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        const dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        let err = dx + dy;
+        while (true) {
+            this.px(x0, y0, color);
+            if (x0 === x1 && y0 === y1) break;
+            const e2 = 2 * err;
+            if (e2 >= dy) { err += dy; x0 += sx; }
+            if (e2 <= dx) { err += dx; y0 += sy; }
+        }
+    }
+    addOutline(outlineColor = '#110d1a') {
+        const copy = this.grid.map(row => [...row]);
+        const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        for (let y = 0; y < this.h; y++) {
+            for (let x = 0; x < this.w; x++) {
+                if (copy[y][x] !== null) continue;
+                for (const [dx, dy] of dirs) {
+                    const nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && nx < this.w && ny >= 0 && ny < this.h && copy[ny][nx] !== null) {
+                        this.grid[y][x] = outlineColor;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    bake(scale = 2) {
+        const makeCanvas = (flipX, whiteFlash) => {
+            const c = document.createElement('canvas');
+            c.width = this.w * scale;
+            c.height = this.h * scale;
+            const cx = c.getContext('2d');
+            cx.imageSmoothingEnabled = false;
+            for (let y = 0; y < this.h; y++) {
+                for (let x = 0; x < this.w; x++) {
+                    const col = this.grid[y][x];
+                    if (!col) continue;
+                    cx.fillStyle = whiteFlash ? '#ffffff' : col;
+                    const drawX = flipX ? (this.w - 1 - x) * scale : x * scale;
+                    cx.fillRect(drawX, y * scale, scale, scale);
+                }
+            }
+            return c;
+        };
+        return {
+            right: makeCanvas(false, false),
+            left: makeCanvas(true, false),
+            flashRight: makeCanvas(false, true),
+            flashLeft: makeCanvas(true, true)
+        };
+    }
+}
+
+/**
+ * 1. 漩渦鳴人 (38×42 像素網格，4 幀忍術奔跑)
+ */
+function buildNarutoFrame(frame) {
+    const pb = new PixelBuilder(38, 42);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+    const ribbonWave = [0, 1, 0, -1][frame];
+
+    // 背後飄動的黑色護額布帶
+    pb.line(11, 13 + bob, 6, 12 + bob + ribbonWave, '#1e293b');
+    pb.line(11, 14 + bob, 5, 14 + bob + ribbonWave, '#334155');
+
+    // 後方手臂
+    const backArmX = 11 - Math.abs(legSwing) * 0.5;
+    pb.line(14, 22 + bob, backArmX, 25 + bob, '#ea580c');
+    pb.rect(backArmX - 1, 26 + bob, 2, 2, '#ffcca8');
+
+    // 橘色長褲雙腿與藍涼鞋
+    const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
+    pb.line(16, 29 + bob, lLegX, 36, '#c2410c');
+    pb.line(17, 29 + bob, lLegX + 1, 36, '#f97316');
+    pb.rect(lLegX - 1, 36, 4, 2, '#1e3a8a');
+
+    pb.line(19, 29 + bob, rLegX, 36, '#ea580c');
+    pb.line(20, 29 + bob, rLegX + 1, 36, '#fb923c');
+    pb.rect(rLegX - 1, 31 + bob, 3, 2, '#f8fafc'); // 大腿繃帶
+    pb.rect(rLegX - 1, 36, 4, 2, '#1d4ed8');
+
+    // 橘黑經典運動忍服外套
+    pb.rect(14, 21 + bob, 10, 9, '#f97316');
+    pb.rect(15, 22 + bob, 8, 8, '#fb923c');
+    // 黑色肩部區塊
+    pb.rect(14, 20 + bob, 10, 3, '#1e1e2c');
+    // 白色立領與正中拉鍊
+    pb.rect(17, 19 + bob, 4, 2, '#f8fafc');
+    pb.line(19, 21 + bob, 19, 29 + bob, '#cbd5e1');
+
+    // 臉部與陽光笑容
+    pb.oval(19, 15 + bob, 6.2, 5.4, '#ffcca8');
+    pb.rect(15, 18 + bob, 8, 2, '#f3b086');
+    // 水藍眼睛
+    pb.rect(15, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(16, 14 + bob, 2, 2, '#0284c7');
+    pb.rect(21, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(22, 14 + bob, 2, 2, '#0284c7');
+    // 招牌三道鬍鬚紋
+    pb.line(13, 15 + bob, 14, 15 + bob, '#b56545');
+    pb.line(13, 17 + bob, 14, 17 + bob, '#b56545');
+    pb.line(24, 15 + bob, 25, 15 + bob, '#b56545');
+    pb.line(24, 17 + bob, 25, 17 + bob, '#b56545');
+    pb.line(18, 18 + bob, 21, 18 + bob, '#b56545');
+
+    // 黑色木葉護額
+    pb.rect(12, 10 + bob, 14, 3, '#1e293b');
+    pb.rect(15, 10 + bob, 9, 3, '#cbd5e1');
+    pb.px(19, 11 + bob, '#334155');
+
+    // 鳴人刺蝟金髮
+    pb.oval(18, 7 + bob, 8.5, 3.6, '#eab308');
+    pb.oval(18, 6 + bob, 7.2, 2.8, '#facc15');
+    pb.line(14, 3 + bob, 15, 7 + bob, '#fef08a');
+    pb.line(18, 2 + bob, 18, 6 + bob, '#fef08a');
+    pb.line(22, 2 + bob, 22, 6 + bob, '#fef08a');
+    pb.line(25, 4 + bob, 24, 7 + bob, '#facc15');
+    pb.line(14, 9 + bob, 13, 11 + bob, '#facc15');
+    pb.line(24, 9 + bob, 25, 11 + bob, '#facc15');
+
+    // 前方手臂
+    const frontArmX = 11 + (legSwing * 0.4);
+    pb.line(15, 22 + bob, frontArmX, 26 + bob, '#f97316');
+    pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#ffcca8');
+
+    pb.addOutline('#120e1c');
+    return pb.bake(2);
+}
+
+/**
+ * 2. 旗木卡卡西 (38×42 像素網格，4 幀敏捷奔跑)
+ */
+function buildKakashiFrame(frame) {
+    const pb = new PixelBuilder(38, 42);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+
+    // 後方暗藍袖手臂
+    const backArmX = 11 - Math.abs(legSwing) * 0.5;
+    pb.line(14, 22 + bob, backArmX, 25 + bob, '#1e293b');
+    pb.rect(backArmX - 1, 26 + bob, 2, 2, '#94a3b8'); // 露指鐵甲手套
+
+    // 暗藍忍者長褲雙腿
+    const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
+    pb.line(16, 29 + bob, lLegX, 36, '#0f172a');
+    pb.line(17, 29 + bob, lLegX + 1, 36, '#1e293b');
+    pb.rect(lLegX - 1, 36, 4, 2, '#0f172a');
+
+    pb.line(19, 29 + bob, rLegX, 36, '#1e293b');
+    pb.line(20, 29 + bob, rLegX + 1, 36, '#334155');
+    pb.rect(rLegX - 1, 31 + bob, 3, 2, '#f8fafc');
+    pb.rect(rLegX - 1, 36, 4, 2, '#1e293b');
+
+    // 綠色木葉上忍馬甲＋暗藍緊身衣＋肩部紅漩渦
+    pb.rect(14, 21 + bob, 10, 9, '#1e293b');
+    pb.rect(14, 20 + bob, 10, 8, '#15803d'); // 綠馬甲底色
+    pb.rect(15, 20 + bob, 8, 7, '#22c55e');  // 馬甲高光
+    pb.line(19, 20 + bob, 19, 27 + bob, '#14532d'); // 馬甲中線
+    pb.rect(15, 23 + bob, 2, 2, '#166534'); // 忍術卷軸口袋
+    pb.rect(21, 23 + bob, 2, 2, '#166534');
+    pb.px(13, 21 + bob, '#ef4444'); // 肩部紅漩渦
+
+    // 臉部與暗部面罩
+    pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
+    // 標誌性深藍高領面罩（遮住口鼻）
+    pb.rect(13, 15 + bob, 12, 5, '#1e293b');
+    pb.line(14, 15 + bob, 24, 15 + bob, '#334155');
+
+    // 右眼（慵懶死魚眼）與左眼（寫輪眼紅光微露）
+    pb.rect(21, 13 + bob, 3, 2, '#ffffff');
+    pb.px(22, 14 + bob, '#0f172a');
+    pb.px(16, 14 + bob, '#ef4444'); // 護額縫隙透出的寫輪眼紅點
+
+    // 斜戴的木葉護額（向左傾斜遮住左眼）
+    pb.line(12, 10 + bob, 25, 12 + bob, '#1e293b');
+    pb.line(12, 11 + bob, 25, 13 + bob, '#1e293b');
+    pb.line(12, 12 + bob, 25, 14 + bob, '#0f172a');
+    pb.rect(15, 11 + bob, 7, 3, '#cbd5e1');
+
+    // 招牌沖天銀白髮（向一側飄逸）
+    pb.oval(18, 7 + bob, 8.2, 3.6, '#cbd5e1');
+    pb.oval(17, 6 + bob, 7.0, 2.8, '#f1f5f9');
+    pb.line(13, 3 + bob, 16, 7 + bob, '#ffffff');
+    pb.line(16, 1 + bob, 18, 6 + bob, '#ffffff');
+    pb.line(20, 2 + bob, 20, 6 + bob, '#e2e8f0');
+    pb.line(23, 4 + bob, 22, 7 + bob, '#cbd5e1');
+
+    // 前方手臂
+    const frontArmX = 11 + (legSwing * 0.4);
+    pb.line(15, 22 + bob, frontArmX, 26 + bob, '#1e293b');
+    pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#94a3b8');
+
+    pb.addOutline('#0e111a');
+    return pb.bake(2);
+}
+
+/**
+ * 3. 自來也 (40×44 像素網格，4 幀豪邁步伐＋長白髮＋大卷軸＋木屐)
+ */
+function buildJiraiyaFrame(frame) {
+    const pb = new PixelBuilder(40, 44);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+    const hairWave = [0, 1, 0, -1][frame];
+
+    // 1. 背後超長濃密白髮（自來也最大特徵）
+    pb.oval(13, 18 + bob + hairWave, 6.5, 11, '#cbd5e1');
+    pb.oval(12, 17 + bob + hairWave, 5.2, 9.5, '#f8fafc');
+    pb.line(9, 26 + bob, 7, 32 + bob + hairWave, '#e2e8f0');
+    pb.line(11, 27 + bob, 10, 33 + bob + hairWave, '#cbd5e1');
+
+    // 2. 背負的妙木山巨型通靈卷軸
+    pb.line(11, 14 + bob, 24, 24 + bob, '#15803d');
+    pb.line(11, 15 + bob, 24, 25 + bob, '#22c55e');
+    pb.rect(10, 13 + bob, 3, 3, '#facc15'); // 卷軸金邊軸心
+    pb.rect(23, 23 + bob, 3, 3, '#facc15');
+
+    // 3. 綠色長褲與紅色木屐 (Geta)
+    const lLegX = 17 - legSwing, rLegX = 22 + legSwing;
+    pb.line(18, 30 + bob, lLegX, 38, '#14532d');
+    pb.line(19, 30 + bob, lLegX + 1, 38, '#166534');
+    pb.rect(lLegX - 1, 38, 4, 2, '#dc2626'); // 紅木屐
+
+    pb.line(21, 30 + bob, rLegX, 38, '#166534');
+    pb.line(22, 30 + bob, rLegX + 1, 38, '#22c55e');
+    pb.rect(rLegX - 1, 38, 4, 2, '#ef4444');
+
+    // 4. 紅色羽織外褂＋網格內衣＋護腕
+    pb.rect(15, 21 + bob, 11, 10, '#991b1b');
+    pb.rect(16, 21 + bob, 9, 10, '#dc2626');
+    // 敞開胸口與護額腰帶
+    pb.rect(19, 21 + bob, 3, 8, '#ffcca8');
+    pb.rect(16, 28 + bob, 9, 2, '#1e293b');
+
+    // 5. 豪邁臉龐與眼下紅紋
+    pb.oval(21, 15 + bob, 6.4, 5.6, '#ffcca8');
+    pb.rect(17, 13 + bob, 3, 2, '#ffffff');
+    pb.px(18, 14 + bob, '#0f172a');
+    pb.rect(23, 13 + bob, 3, 2, '#ffffff');
+    pb.px(24, 14 + bob, '#0f172a');
+    // 眼下紅色仙人臉紋
+    pb.line(17, 16 + bob, 17, 18 + bob, '#ef4444');
+    pb.line(25, 16 + bob, 25, 18 + bob, '#ef4444');
+    pb.line(19, 18 + bob, 23, 18 + bob, '#b56545');
+
+    // 6. 雙角「油」字紅色護額
+    pb.rect(14, 9 + bob, 14, 4, '#dc2626');
+    pb.px(14, 8 + bob, '#ef4444'); // 左角
+    pb.px(27, 8 + bob, '#ef4444'); // 右角
+    pb.rect(17, 9 + bob, 8, 4, '#e2e8f0');
+    pb.px(20, 10 + bob, '#1e293b'); // 「油」字刻印
+    pb.px(21, 11 + bob, '#1e293b');
+
+    // 7. 頭頂炸開的白色刺蝟髮冠
+    pb.oval(20, 6 + bob, 9, 3.8, '#e2e8f0');
+    pb.line(14, 3 + bob, 17, 7 + bob, '#ffffff');
+    pb.line(19, 1 + bob, 20, 6 + bob, '#ffffff');
+    pb.line(24, 2 + bob, 23, 6 + bob, '#ffffff');
+    pb.line(27, 4 + bob, 25, 7 + bob, '#cbd5e1');
+
+    // 8. 紅色寬袖與護臂
+    const frontArmX = 13 + (legSwing * 0.4);
+    pb.line(17, 22 + bob, frontArmX, 27 + bob, '#dc2626');
+    pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#1e293b');
+    pb.rect(frontArmX - 1, 28 + bob, 2, 2, '#ffcca8');
+
+    pb.addOutline('#140c18');
+    return pb.bake(2);
+}
+
+/**
+ * 敵人精靈：白絕、暗部叛忍、曉組織精英
+ */
+function buildZetsuFrame(frame) {
+    const pb = new PixelBuilder(34, 38);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const sway = frame === 0 ? -1 : frame === 2 ? 1 : 0;
+    const legSwing = frame === 0 ? -2 : frame === 2 ? 2 : 0;
+
+    pb.oval(17 + sway, 12 + bob, 12, 10, '#15803d');
+    pb.oval(17 + sway, 11 + bob, 10.5, 8.5, '#22c55e');
+    pb.line(9 + sway, 8 + bob, 12 + sway, 12 + bob, '#86efac');
+    pb.line(25 + sway, 8 + bob, 22 + sway, 12 + bob, '#86efac');
+    pb.oval(17 + sway, 13 + bob, 8.5, 7, '#052e16');
+    [[9, 9], [12, 6], [17, 5], [22, 6], [25, 9]].forEach(([sx, sy]) => pb.px(sx + sway, sy + bob, '#f0fdf4'));
+
+    pb.line(15, 27 + bob, 14 - legSwing, 35, '#cbd5e1');
+    pb.line(16, 27 + bob, 15 - legSwing, 35, '#f8fafc');
+    pb.line(19, 27 + bob, 20 + legSwing, 35, '#cbd5e1');
+    pb.line(20, 27 + bob, 21 + legSwing, 35, '#f8fafc');
+
+    pb.rect(13, 19 + bob, 8, 9, '#e2e8f0');
+    pb.rect(14, 19 + bob, 6, 8, '#ffffff');
+    pb.line(13, 20 + bob, 9, 25 + bob, '#cbd5e1');
+    pb.line(21, 20 + bob, 25, 25 + bob, '#f8fafc');
+
+    pb.oval(17, 13 + bob, 5.2, 5, '#f8fafc');
+    pb.rect(14, 12 + bob, 2, 2, '#facc15');
+    pb.rect(19, 12 + bob, 2, 2, '#facc15');
+    pb.line(15, 16 + bob, 19, 16 + bob, '#64748b');
+
+    pb.addOutline('#0d1610');
+    return pb.bake(2);
+}
+
+function buildRogueFrame(frame) {
+    const pb = new PixelBuilder(36, 36);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -4 : frame === 2 ? 4 : 0;
+    const scarfWave = [0, 2, 0, -2][frame];
+
+    pb.line(17, 17 + bob, 9, 15 + bob + scarfWave, '#be123c');
+    pb.line(16, 18 + bob, 7, 17 + bob + scarfWave, '#f43f5e');
+    pb.line(9, 15 + bob + scarfWave, 3, 13 + bob - scarfWave, '#e11d48');
+    pb.line(12, 13 + bob, 21, 26 + bob, '#334155');
+    pb.line(10, 10 + bob, 12, 13 + bob, '#fbbf24');
+
+    pb.line(17, 25 + bob, 13 - legSwing, 33, '#1e1b4b');
+    pb.line(18, 25 + bob, 14 - legSwing, 33, '#312e81');
+    pb.line(20, 25 + bob, 24 + legSwing, 33, '#1e1b4b');
+    pb.line(21, 25 + bob, 25 + legSwing, 33, '#312e81');
+
+    pb.rect(15, 18 + bob, 9, 8, '#2e1065');
+    pb.rect(17, 18 + bob, 6, 7, '#4c1d95');
+    pb.line(16, 19 + bob, 8, 22 + bob, '#312e81');
+
+    pb.oval(22, 13 + bob, 5.2, 4.8, '#2e1065');
+    pb.rect(19, 10 + bob, 7, 3, '#94a3b8');
+    pb.line(20, 11 + bob, 25, 11 + bob, '#475569');
+    pb.rect(20, 13 + bob, 2, 2, '#ff1e56');
+    pb.rect(24, 13 + bob, 2, 2, '#ff1e56');
+    pb.rect(16, 16 + bob, 10, 3, '#e11d48');
+
+    pb.addOutline('#0c0817');
+    return pb.bake(2);
+}
+
+function buildAkatsukiFrame(frame) {
+    const pb = new PixelBuilder(42, 46);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const hemWave = frame === 0 ? -1 : frame === 2 ? 1 : 0;
+
+    for (let y = 18; y <= 41; y++) {
+        const halfW = 7 + Math.floor((y - 18) * 0.28);
+        pb.rect(21 - halfW, y + bob, halfW * 2, 1, '#181822');
+        pb.rect(21 - halfW + 1, y + bob, 2, 1, '#272736');
+    }
+    pb.line(10 + hemWave, 42 + bob, 32 + hemWave, 42 + bob, '#991b1b');
+
+    const drawRedCloud = (cx, cy) => {
+        pb.rect(cx - 3, cy - 1, 7, 3, '#ffffff');
+        pb.rect(cx - 2, cy - 2, 5, 5, '#ffffff');
+        pb.rect(cx - 2, cy - 1, 5, 2, '#ef4444');
+        pb.rect(cx - 1, cy - 2, 3, 3, '#dc2626');
+    };
+    drawRedCloud(16, 26 + bob);
+    drawRedCloud(26, 34 + bob);
+
+    pb.rect(14, 15 + bob, 14, 5, '#991b1b');
+    pb.rect(15, 16 + bob, 12, 4, '#dc2626');
+    pb.rect(10, 21 + bob, 4, 10, '#1f1f2c');
+    pb.rect(28, 21 + bob, 4, 10, '#181822');
+
+    pb.oval(21, 11 + bob, 5.5, 4.8, '#f6c7a6');
+    pb.rect(17, 10 + bob, 3, 2, '#e9d5ff');
+    pb.px(18, 10 + bob, '#7e22ce');
+    pb.rect(23, 10 + bob, 3, 2, '#e9d5ff');
+    pb.px(24, 10 + bob, '#7e22ce');
+    pb.rect(15, 7 + bob, 12, 3, '#1e293b');
+    pb.rect(17, 7 + bob, 8, 3, '#cbd5e1');
+    pb.oval(21, 4 + bob, 7.5, 3.2, '#ea580c');
+    pb.line(19, 1 + bob, 19, 5 + bob, '#fdba74');
+    pb.line(23, 1 + bob, 23, 5 + bob, '#fdba74');
+
+    pb.addOutline('#08060c');
+    return pb.bake(2);
+}
+
+const SPRITES = {
+    naruto: [],
+    kakashi: [],
+    jiraiya: [],
+    zetsu: [],
+    rogue: [],
+    akatsuki: []
+};
+
+function buildAllSprites() {
+    for (let f = 0; f < 4; f++) {
+        SPRITES.naruto.push(buildNarutoFrame(f));
+        SPRITES.kakashi.push(buildKakashiFrame(f));
+        SPRITES.jiraiya.push(buildJiraiyaFrame(f));
+        SPRITES.zetsu.push(buildZetsuFrame(f));
+        SPRITES.rogue.push(buildRogueFrame(f));
+        SPRITES.akatsuki.push(buildAkatsukiFrame(f));
+    }
+
+    // 繪製選角大廳角色預覽
+    ['naruto', 'kakashi', 'jiraiya'].forEach(cid => {
+        const c = document.getElementById(`prev-${cid}`);
+        const cx = c.getContext('2d');
+        cx.imageSmoothingEnabled = false;
+        const img = SPRITES[cid][0].right;
+        cx.drawImage(img, Math.round((c.width - img.width) / 2), Math.round((c.height - img.height) / 2));
+    });
+}
+
+function updateHudPortrait(charId) {
+    const pCanvas = document.getElementById('portrait-canvas');
+    const pctx = pCanvas.getContext('2d');
+    pctx.imageSmoothingEnabled = false;
+    pctx.clearRect(0, 0, 58, 58);
+    const img = SPRITES[charId][0].right;
+    pctx.drawImage(img, 12, 2, 52, 52, 0, 2, 58, 58);
+
+    const names = {
+        naruto: 'UZUMAKI NARUTO',
+        kakashi: 'HATAKE KAKASHI',
+        jiraiya: 'SAGE JIRAIYA'
+    };
+    document.getElementById('hud-char-name').innerText = names[charId] || 'SHINOBI';
+}
+
+function createUpgradeIconCanvas(type) {
+    const c = document.createElement('canvas');
+    c.width = 34;
+    c.height = 34;
+    const cx = c.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+
+    if (type.startsWith('w_')) {
+        cx.fillStyle = '#e2e8f0';
+        cx.fillRect(15, 4, 4, 15);
+        cx.fillRect(13, 9, 8, 8);
+        cx.fillStyle = '#dc2626';
+        cx.fillRect(16, 19, 2, 7);
+    } else if (type === 'raikiri' || type === 'rasengan') {
+        cx.strokeStyle = '#38bdf8';
+        cx.lineWidth = 2;
+        cx.beginPath(); cx.arc(17, 17, 12, 0, Math.PI * 2); cx.stroke();
+        cx.fillStyle = '#0ea5e9';
+        cx.beginPath(); cx.arc(17, 17, 7, 0, Math.PI * 2); cx.fill();
+        cx.fillStyle = '#ffffff';
+        cx.fillRect(14, 14, 4, 4);
+    } else if (type === 'lightning') {
+        cx.fillStyle = '#c084fc';
+        cx.fillRect(16, 4, 5, 11);
+        cx.fillRect(12, 13, 8, 5);
+        cx.fillRect(15, 17, 5, 12);
+    } else if (type === 'fireball') {
+        cx.fillStyle = '#ea580c';
+        cx.beginPath(); cx.arc(17, 18, 11, 0, Math.PI * 2); cx.fill();
+        cx.fillStyle = '#facc15';
+        cx.beginPath(); cx.arc(17, 19, 6, 0, Math.PI * 2); cx.fill();
+    } else if (type === 'clone') {
+        cx.drawImage(SPRITES.naruto[0].right, 14, 4, 48, 48, 2, 2, 30, 30);
+    } else if (type === 'hp') {
+        cx.fillStyle = '#ef4444';
+        cx.fillRect(7, 10, 8, 8);
+        cx.fillRect(19, 10, 8, 8);
+        cx.fillRect(5, 12, 24, 8);
+        cx.fillRect(9, 20, 16, 5);
+        cx.fillRect(13, 25, 8, 4);
+    } else if (type === 'speed') {
+        cx.fillStyle = '#38bdf8';
+        cx.fillRect(5, 10, 20, 3);
+        cx.fillRect(9, 16, 22, 3);
+        cx.fillRect(4, 22, 18, 3);
+    } else {
+        cx.fillStyle = '#0284c7';
+        cx.beginPath();
+        cx.moveTo(17, 5); cx.lineTo(28, 17); cx.lineTo(17, 29); cx.lineTo(6, 17);
+        cx.closePath(); cx.fill();
+    }
+    return c;
+}
+
+/**
+ * ============================================================================
+ * 3. 木葉訓練場無縫地磚紋理
+ * ============================================================================
+ */
+let groundPattern = null;
+function createGroundPattern(ctx) {
+    const tile = document.createElement('canvas');
+    const px = 3;
+    const grid = 96;
+    tile.width = grid * px;
+    tile.height = grid * px;
+    const tctx = tile.getContext('2d');
+
+    function hash(x, y) {
+        const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+        return n - Math.floor(n);
+    }
+
+    for (let y = 0; y < grid; y++) {
+        for (let x = 0; x < grid; x++) {
+            const r = hash(x, y);
+            let color = '#243f26';
+            if (r > 0.74) color = '#2c4c2e';
+            else if (r > 0.45) color = '#28452a';
+            else if (r < 0.14) color = '#1d341f';
+
+            tctx.fillStyle = color;
+            tctx.fillRect(x * px, y * px, px, px);
+
+            if (r > 0.945) {
+                tctx.fillStyle = '#3e6b3c';
+                tctx.fillRect(x * px, y * px, px, px);
+                tctx.fillStyle = '#578e52';
+                tctx.fillRect((x + 1) % grid * px, (y - 1 + grid) % grid * px, px, px);
+            } else if (r < 0.015) {
+                tctx.fillStyle = '#64748b';
+                tctx.fillRect(x * px, y * px, px, px);
+            }
+        }
+    }
+
+    tctx.fillStyle = 'rgba(12, 24, 14, 0.35)';
+    tctx.fillRect(0, 0, tile.width, px);
+    tctx.fillRect(0, 0, px, tile.height);
+    groundPattern = ctx.createPattern(tile, 'repeat');
+}
+
+/**
+ * ============================================================================
+ * 4. 連線與遊戲狀態管理 (支援 3 人線上 Socket.io + 單機備援)
+ * ============================================================================
+ */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', resizeCanvas);
+
+let selectedChar = 'naruto';
+let mode = 'NONE'; // 'ONLINE' or 'SOLO'
+let gameState = 'START';
+let socket = null;
+let myId = 'local';
+let isHost = false;
+let currentRoomCode = '';
+
+let keys = {};
+let lastSentDx = 0;
+let lastSentDy = 0;
+
+let camera = { x: 0, y: 0 };
+let screenShake = 0;
+let renderTime = 0;
+
+// 同步世界狀態
+let worldState = {
+    t: 0,
+    lv: 1,
+    xp: 0,
+    xpNext: 30,
+    kills: 0,
+    players: [],
+    enemies: [],
+    projectiles: [],
+    gems: []
+};
+
+let damageTexts = [];
+let visualEffects = [];
+let particles = [];
+let ambientLeaves = [];
+
+// 讀取上次儲存的伺服器網址與玩家暱稱
+const savedServer = localStorage.getItem('naruto_coop_server') || '';
+const savedName = localStorage.getItem('naruto_coop_name') || '';
+if (savedServer) document.getElementById('input-server').value = savedServer;
+if (savedName) document.getElementById('input-name').value = savedName;
+
+function chooseCharacter(charId) {
+    selectedChar = charId;
+    ['naruto', 'kakashi', 'jiraiya'].forEach(id => {
+        document.getElementById(`card-${id}`).classList.toggle('selected', id === charId);
+    });
+    if (socket && socket.connected && currentRoomCode) {
+        socket.emit('selectChar', charId);
+    }
+}
+
+function connectSocket(callback) {
+    const url = document.getElementById('input-server').value.trim();
+    const name = document.getElementById('input-name').value.trim() || '木葉忍者';
+    const errEl = document.getElementById('lobby-error');
+    const statusEl = document.getElementById('conn-status');
+
+    if (!url) {
+        errEl.innerText = '請先填入你部署在 Render / Zeabur 的後端伺服器網址，或點選「單機模式試玩」！';
+        return;
+    }
+
+    localStorage.setItem('naruto_coop_server', url);
+    localStorage.setItem('naruto_coop_name', name);
+    errEl.innerText = '';
+
+    if (socket && socket.connected) {
+        callback();
+        return;
+    }
+
+    statusEl.innerText = '連線喚醒中...';
+    statusEl.style.color = '#38bdf8';
+
+    if (socket) socket.disconnect();
+    socket = io(url, { transports: ['websocket', 'polling'] });
+
+    socket.on('connect', () => {
+        myId = socket.id;
+        statusEl.innerText = '已連線';
+        statusEl.style.color = '#4ade80';
+        callback();
+    });
+
+    socket.on('connect_error', () => {
+        statusEl.innerText = '連線失敗';
+        statusEl.style.color = '#ef4444';
+        errEl.innerText = '無法連線至伺服器（若為 Render 免費版，請等約 30 秒喚醒後再試一次）';
+    });
+
+    socket.on('roomError', (msg) => {
+        errEl.innerText = msg;
+    });
+
+    socket.on('lobbyUpdate', ({ code, hostId, players }) => {
+        currentRoomCode = code;
+        isHost = (hostId === myId);
+        document.getElementById('room-controls').style.display = 'none';
+        document.getElementById('lobby-box').style.display = 'block';
+        document.getElementById('display-room-code').innerText = code;
+
+        const charNames = { naruto: '漩渦鳴人', kakashi: '旗木卡卡西', jiraiya: '自來也' };
+        const slotsEl = document.getElementById('lobby-slots');
+        slotsEl.innerHTML = '';
+
+        for (let i = 0; i < 3; i++) {
+            const p = players[i];
+            const div = document.createElement('div');
+            div.className = 'slot-item';
+            if (p) {
+                div.innerHTML = `
+                    <div style="color:#fbbf24; font-weight:bold;">${i + 1}P ${p.name} ${p.id === hostId ? '(房主)' : ''}</div>
+                    <div style="color:#38bdf8; margin-top:4px;">${charNames[p.charId]}</div>
+                `;
+            } else {
+                div.innerHTML = `<div style="color:#64748b;">${i + 1}P 等待隊友加入...</div>`;
+            }
+            slotsEl.appendChild(div);
+        }
+
+        document.getElementById('btn-host-start').style.display = isHost ? 'inline-block' : 'none';
+        document.getElementById('wait-host-msg').style.display = isHost ? 'none' : 'block';
+    });
+
+    socket.on('gameStarted', () => {
+        mode = 'ONLINE';
+        gameState = 'PLAYING';
+        keys = {};
+        damageTexts = [];
+        visualEffects = [];
+        particles = [];
+        document.getElementById('menu-start').style.display = 'none';
+        document.getElementById('menu-gameover').style.display = 'none';
+        document.getElementById('menu-levelup').style.display = 'none';
+        document.getElementById('ui-layer').style.display = 'block';
+        updateHudPortrait(selectedChar);
+    });
+
+    socket.on('state', (snap) => {
+        // 平滑插值合併玩家與敵人位置
+        const oldPlayers = new Map(worldState.players.map(p => [p.id, p]));
+        snap.players.forEach(np => {
+            const op = oldPlayers.get(np.id);
+            if (op) {
+                np.rx = op.rx !== undefined ? op.rx : op.x;
+                np.ry = op.ry !== undefined ? op.ry : op.y;
+            } else {
+                np.rx = np.x;
+                np.ry = np.y;
+            }
+        });
+
+        const oldEnemies = new Map(worldState.enemies.map(e => [e.id, e]));
+        snap.enemies.forEach(ne => {
+            const oe = oldEnemies.get(ne.id);
+            if (oe) {
+                ne.rx = oe.rx !== undefined ? oe.rx : oe.x;
+                ne.ry = oe.ry !== undefined ? oe.ry : oe.y;
+            } else {
+                ne.rx = ne.x;
+                ne.ry = ne.y;
+            }
+        });
+
+        worldState = snap;
+        updateOnlineHud();
+    });
+
+    socket.on('sfx', (type) => playSfx(type));
+
+    socket.on('playerHurt', () => {
+        screenShake = 9;
+        playSfx('hurt');
+        const overlay = document.getElementById('damage-overlay');
+        overlay.classList.add('hit-flash');
+        setTimeout(() => overlay.classList.remove('hit-flash'), 160);
+    });
+
+    socket.on('fx', (ev) => {
+        if (ev.type === 'dmg') {
+            damageTexts.push({ x: ev.x, y: ev.y, text: ev.val, color: ev.color, life: 0.75 });
+        } else if (ev.type === 'rasengan') {
+            visualEffects.push({ kind: 'ring', x: ev.x, y: ev.y, r: ev.r, color: '#38bdf8', life: 0.28, maxLife: 0.28 });
+        } else if (ev.type === 'explosion') {
+            visualEffects.push({ kind: 'blast', x: ev.x, y: ev.y, r: ev.r, life: 0.35, maxLife: 0.35 });
+        } else if (ev.type === 'lightning') {
+            visualEffects.push({ kind: 'bolt', x1: ev.x1, y1: ev.y1, x2: ev.x2, y2: ev.y2, life: 0.22, maxLife: 0.22 });
+        } else if (ev.type === 'poof') {
+            for (let i = 0; i < 8; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const s = 25 + Math.random() * 55;
+                particles.push({ x: ev.x, y: ev.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, color: '#cbd5e1', size: 8, life: 0.4, maxLife: 0.4 });
+            }
+        } else if (ev.type === 'revive') {
+            damageTexts.push({ x: ev.x, y: ev.y - 30, text: `${ev.name} 已復活！`, color: '#4ade80', life: 1.2 });
+        } else if (ev.type === 'downed') {
+            damageTexts.push({ x: ev.x, y: ev.y - 30, text: `${ev.name} 倒地！快靠近救援`, color: '#f87171', life: 1.5 });
+        }
+    });
+
+    socket.on('levelUpChoices', ({ level, choices }) => {
+        gameState = 'LEVELUP';
+        keys = {};
+        if (socket) socket.emit('input', { dx: 0, dy: 0 });
+        playSfx('levelup');
+
+        document.getElementById('levelup-title').innerText = `TEAM LV.${level} 忍術覺醒！`;
+        const container = document.getElementById('upgrade-options');
+        container.innerHTML = '';
+
+        choices.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'upgrade-card';
+            const iconBox = document.createElement('div');
+            iconBox.className = 'upgrade-icon-box';
+            iconBox.appendChild(createUpgradeIconCanvas(c.id));
+
+            const info = document.createElement('div');
+            info.innerHTML = `
+                <div class="upgrade-title">${c.title}</div>
+                <div class="upgrade-desc">${c.desc}</div>
+            `;
+            card.appendChild(iconBox);
+            card.appendChild(info);
+            card.onclick = () => {
+                container.innerHTML = '<div style="color:#38bdf8; padding:20px;">已選擇！等待其他隊友選擇忍術...</div>';
+                socket.emit('chooseUpgrade', c.id);
+            };
+            container.appendChild(card);
+        });
+
+        document.getElementById('menu-levelup').style.display = 'block';
+    });
+
+    socket.on('upgradeStatus', ({ waiting, total }) => {
+        document.getElementById('levelup-wait-msg').innerText = `隊友選擇進度：${total - waiting} / ${total} 完成`;
+    });
+
+    socket.on('resumeGame', () => {
+        document.getElementById('menu-levelup').style.display = 'none';
+        gameState = 'PLAYING';
+    });
+
+    socket.on('gameOver', (summary) => {
+        gameState = 'GAMEOVER';
+        document.getElementById('ui-layer').style.display = 'none';
+        document.getElementById('menu-levelup').style.display = 'none';
+        document.getElementById('menu-gameover').style.display = 'block';
+
+        const mins = Math.floor(summary.time / 60).toString().padStart(2, '0');
+        const secs = Math.floor(summary.time % 60).toString().padStart(2, '0');
+        document.getElementById('go-time').innerText = `${mins}:${secs}`;
+        document.getElementById('go-level').innerText = summary.level;
+        document.getElementById('go-kills').innerText = summary.totalKills;
+
+        const charNames = { naruto: '鳴人', kakashi: '卡卡西', jiraiya: '自來也' };
+        document.getElementById('go-scoreboard').innerHTML = summary.players
+            .map(p => `${p.name} (${charNames[p.charId]}) — 擊殺: <b style="color:#fbbf24;">${p.kills}</b>`)
+            .join('<br>');
+
+        document.getElementById('btn-restart').style.display = isHost ? 'inline-block' : 'none';
+    });
+}
+
+function createOnlineRoom() {
+    initAudio();
+    const name = document.getElementById('input-name').value.trim() || '木葉忍者';
+    connectSocket(() => {
+        socket.emit('createRoom', { name, charId: selectedChar });
+    });
+}
+
+function joinOnlineRoom() {
+    initAudio();
+    const code = document.getElementById('input-room-code').value.trim();
+    const name = document.getElementById('input-name').value.trim() || '木葉忍者';
+    if (code.length !== 4) {
+        document.getElementById('lobby-error').innerText = '請輸入 4 位數房間號碼！';
+        return;
+    }
+    connectSocket(() => {
+        socket.emit('joinRoom', { code, name, charId: selectedChar });
+    });
+}
+
+function hostStartGame() {
+    if (socket && isHost) socket.emit('startGame');
+}
+
+function handleRestart() {
+    if (mode === 'ONLINE') {
+        if (socket && isHost) socket.emit('restartGame');
+    } else {
+        startOfflineSolo();
+    }
+}
+
+function updateOnlineHud() {
+    document.getElementById('xp-bar').style.width = `${Math.min(100, (worldState.xp / worldState.xpNext) * 100)}%`;
+    document.getElementById('ui-level').innerText = `LV.${worldState.lv}`;
+    document.getElementById('ui-kills').innerText = worldState.kills;
+
+    const mins = Math.floor(worldState.t / 60).toString().padStart(2, '0');
+    const secs = Math.floor(worldState.t % 60).toString().padStart(2, '0');
+    document.getElementById('ui-time').innerText = `${mins}:${secs}`;
+    const wave = Math.floor(worldState.t / 30) + 1;
+    document.getElementById('wave-tag').innerText = `木葉防衛 • 第 ${wave} 波`;
+
+    const me = worldState.players.find(p => p.id === myId) || worldState.players[0];
+    if (me) {
+        const hpPct = Math.max(0, (me.hp / me.maxHp) * 100);
+        document.getElementById('hud-hp-fill').style.width = `${hpPct}%`;
+        document.getElementById('hud-hp-text').innerText = me.downed ? '倒地！等待隊友救援' : `${Math.ceil(me.hp)} / ${me.maxHp}`;
+
+        const badges = [`<div class="w-badge">主忍術 x${me.wCount}</div>`];
+        if (me.rasenLv > 0) badges.push(`<div class="w-badge">螺旋丸 LV.${me.rasenLv}</div>`);
+        if (me.raikiriLv > 0) badges.push(`<div class="w-badge">雷切 x${me.raikiriCnt}</div>`);
+        if (me.lightLv > 0) badges.push(`<div class="w-badge">紫電 LV.${me.lightLv}</div>`);
+        if (me.fireLv > 0) badges.push(`<div class="w-badge">大炎彈 LV.${me.fireLv}</div>`);
+        if (me.clones > 0) badges.push(`<div class="w-badge">影分身 x${me.clones}</div>`);
+        document.getElementById('weapon-badges').innerHTML = badges.join('');
+    }
+
+    // 隊友狀態面板
+    const allies = worldState.players.filter(p => p.id !== myId);
+    const allyBox = document.getElementById('teammates-hud');
+    const charLabel = { naruto: '鳴人', kakashi: '卡卡西', jiraiya: '自來也' };
+    allyBox.innerHTML = allies.map(a => `
+        <div class="ally-card ${a.downed ? 'downed' : ''}">
+            <div style="font-weight:bold; color:#fbbf24;">${a.name} (${charLabel[a.charId]})</div>
+            <div style="color:${a.downed ? '#f87171' : '#4ade80'}; margin-top:2px;">
+                ${a.downed ? `倒地救援中 ${Math.floor(a.revive * 100)}%` : `HP: ${Math.ceil(a.hp)} / ${a.maxHp}`}
+            </div>
+        </div>
+    `).join('');
+}
+
+/**
+ * ============================================================================
+ * 5. 內建單機模式備援引擎 (無伺服器時亦可直接體驗 3 位角色)
+ * ============================================================================
+ */
+let soloState = null;
+
+function startOfflineSolo() {
+    initAudio();
+    mode = 'SOLO';
+    isHost = true;
+    myId = 'local';
+    keys = {};
+    damageTexts = [];
+    visualEffects = [];
+    particles = [];
+
+    const baseStats = {
+        naruto: { maxHp: 110, speed: 225, weapon: 'shuriken', cooldown: 0.95, damage: 20, count: 1 },
+        kakashi: { maxHp: 95, speed: 245, weapon: 'kunai', cooldown: 1.05, damage: 28, count: 1 },
+        jiraiya: { maxHp: 135, speed: 200, weapon: 'needle', cooldown: 1.35, damage: 16, count: 3 }
+    }[selectedChar];
+
+    soloState = {
+        t: 0,
+        lv: 1,
+        xp: 0,
+        xpNext: 20,
+        kills: 0,
+        spawnTimer: 0.4,
+        nextId: 1,
+        player: {
+            id: 'local',
+            name: document.getElementById('input-name').value.trim() || '單機忍者',
+            charId: selectedChar,
+            x: 0, y: 0, rx: 0, ry: 0,
+            facing: 'right',
+            moving: false,
+            hp: baseStats.maxHp,
+            maxHp: baseStats.maxHp,
+            speed: baseStats.speed,
+            pickupRange: 125,
+            hitTimer: 0,
+            downed: false,
+            revive: 0,
+            wType: baseStats.weapon,
+            wCd: baseStats.cooldown,
+            wTimer: 0.3,
+            wDmg: baseStats.damage,
+            wCount: baseStats.count,
+            rasenLv: 0, rasenR: 120, rasenDmg: 13, rasenTimer: 0,
+            raikiriLv: 0, raikiriCnt: 2, raikiriDmg: 18, raikiriR: 95, raikiriSpd: 3.4,
+            lightLv: 0, lightBolts: 2, lightDmg: 26, lightTimer: 0,
+            fireLv: 0, fireDmg: 34, fireR: 85, fireTimer: 0,
+            clones: 0, cloneTimers: [0.4, 0.8]
+        },
+        enemies: [],
+        projectiles: [],
+        gems: []
+    };
+
+    document.getElementById('menu-start').style.display = 'none';
+    document.getElementById('menu-gameover').style.display = 'none';
+    document.getElementById('menu-levelup').style.display = 'none';
+    document.getElementById('ui-layer').style.display = 'block';
+    updateHudPortrait(selectedChar);
+    gameState = 'PLAYING';
+}
+
+function stepSolo(dt) {
+    const s = soloState;
+    const p = s.player;
+    s.t += dt;
+    if (p.hitTimer > 0) p.hitTimer = Math.max(0, p.hitTimer - dt);
+
+    let dx = 0, dy = 0;
+    if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+    if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+    if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+    if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+
+    p.moving = (dx !== 0 || dy !== 0);
+    if (p.moving) {
+        const len = Math.hypot(dx, dy);
+        p.x += (dx / len) * p.speed * dt;
+        p.y += (dy / len) * p.speed * dt;
+        if (dx < 0) p.facing = 'left';
+        if (dx > 0) p.facing = 'right';
+    }
+    p.rx = p.x;
+    p.ry = p.y;
+
+    // 主武器
+    p.wTimer -= dt;
+    if (p.wTimer <= 0 && s.enemies.length > 0) {
+        let nearest = null, minD = Infinity;
+        for (const e of s.enemies) {
+            const d = Math.hypot(e.x - p.x, e.y - p.y);
+            if (d < minD) { minD = d; nearest = e; }
+        }
+        if (nearest) {
+            const ang = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+            p.facing = Math.cos(ang) >= 0 ? 'right' : 'left';
+            const step = p.charId === 'jiraiya' ? 0.14 : 0.17;
+            for (let i = 0; i < p.wCount; i++) {
+                const a = ang + (i - (p.wCount - 1) / 2) * step;
+                s.projectiles.push({
+                    id: s.nextId++, kind: p.wType, x: p.x, y: p.y,
+                    vx: Math.cos(a) * 690, vy: Math.sin(a) * 690, angle: a,
+                    damage: p.wDmg, radius: 9, life: 1.6
+                });
+            }
+            playSfx('kunai');
+            p.wTimer = p.wCd;
+        }
+    }
+
+    // 鳴人影分身
+    if (p.clones > 0 && s.enemies.length > 0) {
+        for (let c = 0; c < p.clones; c++) {
+            p.cloneTimers[c] -= dt;
+            if (p.cloneTimers[c] <= 0) {
+                const cx = p.x + (c === 0 ? -50 : 50);
+                const cy = p.y + (c === 0 ? -22 : 22);
+                let nearest = null, minD = Infinity;
+                for (const e of s.enemies) {
+                    const d = Math.hypot(e.x - cx, e.y - cy);
+                    if (d < minD) { minD = d; nearest = e; }
+                }
+                if (nearest) {
+                    const ang = Math.atan2(nearest.y - cy, nearest.x - cx);
+                    s.projectiles.push({
+                        id: s.nextId++, kind: 'shuriken', x: cx, y: cy,
+                        vx: Math.cos(ang) * 680, vy: Math.sin(ang) * 680, angle: ang,
+                        damage: Math.ceil(p.wDmg * 0.65), radius: 8, life: 1.5
+                    });
+                }
+                p.cloneTimers[c] = p.wCd * 1.15;
+            }
+        }
+    }
+
+    // 螺旋丸領域
+    if (p.rasenLv > 0) {
+        p.rasenTimer -= dt;
+        if (p.rasenTimer <= 0) {
+            p.rasenTimer = 0.9;
+            visualEffects.push({ kind: 'ring', x: p.x, y: p.y, r: p.rasenR, color: '#38bdf8', life: 0.28, maxLife: 0.28 });
+            playSfx('rasengan');
+            for (const e of s.enemies) {
+                if (Math.hypot(e.x - p.x, e.y - p.y) < p.rasenR + e.radius) {
+                    soloDamageEnemy(e, p.rasenDmg, '#38bdf8');
+                    e.slowTimer = 1.1;
+                }
+            }
+        }
+    }
+
+    // 卡卡西雷切球
+    if (p.raikiriLv > 0) {
+        const time = s.t * p.raikiriSpd;
+        for (let i = 0; i < p.raikiriCnt; i++) {
+            const ang = time + ((Math.PI * 2) / p.raikiriCnt) * i;
+            const sx = p.x + Math.cos(ang) * p.raikiriR;
+            const sy = p.y + Math.sin(ang) * p.raikiriR;
+            for (const e of s.enemies) {
+                if (e.hitTimer > 0) continue;
+                if (Math.hypot(e.x - sx, e.y - sy) < 15 + e.radius) {
+                    soloDamageEnemy(e, p.raikiriDmg, '#7dd3fc');
+                    const kb = Math.atan2(e.y - sy, e.x - sx);
+                    e.vx = Math.cos(kb) * 320;
+                    e.vy = Math.sin(kb) * 320;
+                }
+            }
+        }
+    }
+
+    // 卡卡西連鎖紫電
+    if (p.lightLv > 0 && s.enemies.length > 0) {
+        p.lightTimer -= dt;
+        if (p.lightTimer <= 0) {
+            p.lightTimer = 1.7;
+            const targets = s.enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 420).slice(0, p.lightBolts);
+            if (targets.length > 0) {
+                playSfx('rasengan');
+                targets.forEach(t => {
+                    visualEffects.push({ kind: 'bolt', x1: p.x, y1: p.y - 12, x2: t.x, y2: t.y, life: 0.22, maxLife: 0.22 });
+                    soloDamageEnemy(t, p.lightDmg, '#c084fc');
+                });
+            }
+        }
+    }
+
+    // 自來也大炎彈
+    if (p.fireLv > 0 && s.enemies.length > 0) {
+        p.fireTimer -= dt;
+        if (p.fireTimer <= 0) {
+            p.fireTimer = 1.8;
+            let nearest = null, minD = Infinity;
+            for (const e of s.enemies) {
+                const d = Math.hypot(e.x - p.x, e.y - p.y);
+                if (d < minD) { minD = d; nearest = e; }
+            }
+            if (nearest) {
+                const ang = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+                s.projectiles.push({
+                    id: s.nextId++, kind: 'fireball', x: p.x, y: p.y,
+                    vx: Math.cos(ang) * 440, vy: Math.sin(ang) * 440, angle: ang,
+                    damage: p.fireDmg, blastR: p.fireR, radius: 15, life: 2.0
+                });
+            }
+        }
+    }
+
+    // 敵人生成
+    s.spawnTimer -= dt;
+    if (s.spawnTimer <= 0) {
+        const spawnRate = Math.max(0.22, 0.95 - s.t / 280);
+        const spawnCount = Math.floor(1 + s.t / 45);
+        const hpMult = 1 + s.t / 110;
+        for (let i = 0; i < spawnCount; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const dist = Math.hypot(canvas.width / 2, canvas.height / 2) + 80;
+            const r = Math.random();
+            let type = 'basic';
+            if (s.t > 18 && r < 0.28) type = 'fast';
+            if (s.t > 42 && r > 0.88) type = 'elite';
+            const st = type === 'basic'
+                ? { radius: 21, speed: 92, hp: Math.round(30 * hpMult), damage: 11, xp: 3 }
+                : type === 'fast'
+                    ? { radius: 19, speed: 170, hp: Math.round(18 * hpMult), damage: 8, xp: 4 }
+                    : { radius: 29, speed: 60, hp: Math.round(170 * hpMult), damage: 24, xp: 14 };
+            const ex = p.x + Math.cos(ang) * dist;
+            const ey = p.y + Math.sin(ang) * dist;
+            s.enemies.push({
+                id: s.nextId++, type, x: ex, y: ey, rx: ex, ry: ey, vx: 0, vy: 0, facing: 'left',
+                hp: st.hp, maxHp: st.hp, speed: st.speed, damage: st.damage, radius: st.radius, xp: st.xp,
+                hitTimer: 0, slowTimer: 0
+            });
+        }
+        s.spawnTimer = spawnRate;
+    }
+
+    // 投射物更新
+    for (let i = s.projectiles.length - 1; i >= 0; i--) {
+        const pr = s.projectiles[i];
+        pr.x += pr.vx * dt;
+        pr.y += pr.vy * dt;
+        pr.life -= dt;
+        if (pr.life <= 0) { s.projectiles.splice(i, 1); continue; }
+        for (let j = s.enemies.length - 1; j >= 0; j--) {
+            const e = s.enemies[j];
+            if (Math.hypot(pr.x - e.x, pr.y - e.y) < pr.radius + e.radius) {
+                if (pr.kind === 'fireball') {
+                    visualEffects.push({ kind: 'blast', x: pr.x, y: pr.y, r: pr.blastR, life: 0.35, maxLife: 0.35 });
+                    playSfx('rasengan');
+                    for (const t of s.enemies) {
+                        if (Math.hypot(t.x - pr.x, t.y - pr.y) <= pr.blastR + t.radius) {
+                            soloDamageEnemy(t, pr.damage, '#fb923c');
+                        }
+                    }
+                } else {
+                    soloDamageEnemy(e, pr.damage, '#fde047');
+                }
+                s.projectiles.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    // 敵人移動
+    for (let i = s.enemies.length - 1; i >= 0; i--) {
+        const e = s.enemies[i];
+        if (e.hp <= 0) { s.enemies.splice(i, 1); continue; }
+        if (e.hitTimer > 0) e.hitTimer = Math.max(0, e.hitTimer - dt);
+        if (e.slowTimer > 0) e.slowTimer = Math.max(0, e.slowTimer - dt);
+
+        const spd = e.slowTimer > 0 ? e.speed * 0.48 : e.speed;
+        e.vx *= 0.88;
+        e.vy *= 0.88;
+        const ang = Math.atan2(p.y - e.y, p.x - e.x);
+        e.facing = Math.cos(ang) >= 0 ? 'right' : 'left';
+        e.x += (Math.cos(ang) * spd + e.vx) * dt;
+        e.y += (Math.sin(ang) * spd + e.vy) * dt;
+        e.rx = e.x;
+        e.ry = e.y;
+
+        if (p.hitTimer <= 0 && Math.hypot(p.x - e.x, p.y - e.y) < 20 + e.radius - 4) {
+            p.hp = Math.max(0, p.hp - e.damage);
+            p.hitTimer = 0.55;
+            screenShake = 9;
+            playSfx('hurt');
+            const overlay = document.getElementById('damage-overlay');
+            overlay.classList.add('hit-flash');
+            setTimeout(() => overlay.classList.remove('hit-flash'), 160);
+            if (p.hp <= 0) {
+                gameState = 'GAMEOVER';
+                document.getElementById('ui-layer').style.display = 'none';
+                document.getElementById('menu-gameover').style.display = 'block';
+                const mins = Math.floor(s.t / 60).toString().padStart(2, '0');
+                const secs = Math.floor(s.t % 60).toString().padStart(2, '0');
+                document.getElementById('go-time').innerText = `${mins}:${secs}`;
+                document.getElementById('go-level').innerText = s.lv;
+                document.getElementById('go-kills').innerText = s.kills;
+                document.getElementById('go-scoreboard').innerText = `${p.name} — 單機挑戰紀錄`;
+                document.getElementById('btn-restart').style.display = 'inline-block';
+                return;
+            }
+        }
+    }
+
+    // 寶石拾取
+    for (let i = s.gems.length - 1; i >= 0; i--) {
+        const g = s.gems[i];
+        const d = Math.hypot(p.x - g.x, p.y - g.y);
+        if (d < p.pickupRange) {
+            const ang = Math.atan2(p.y - g.y, p.x - g.x);
+            g.x += Math.cos(ang) * 490 * dt;
+            g.y += Math.sin(ang) * 490 * dt;
+            if (d < 30) {
+                s.xp += g.value;
+                s.gems.splice(i, 1);
+                playSfx('gem');
+                if (s.xp >= s.xpNext) {
+                    showSoloLevelUp();
+                }
+            }
+        }
+    }
+
+    // 同步至世界渲染狀態
+    worldState = {
+        t: s.t,
+        lv: s.lv,
+        xp: s.xp,
+        xpNext: s.xpNext,
+        kills: s.kills,
+        players: [{
+            ...p,
+            hit: p.hitTimer > 0.35
+        }],
+        enemies: s.enemies.map(e => ({ ...e, hit: e.hitTimer > 0, slow: e.slowTimer > 0 })),
+        projectiles: s.projectiles,
+        gems: s.gems.map(g => ({ id: g.id, x: g.x, y: g.y, val: g.value }))
+    };
+    updateOnlineHud();
+}
+
+function soloDamageEnemy(e, amount, color) {
+    e.hp -= amount;
+    e.hitTimer = 0.11;
+    playSfx('hit');
+    damageTexts.push({ x: e.x, y: e.y - e.radius - 8, text: Math.floor(amount), color, life: 0.75 });
+    const ang = Math.atan2(e.y - soloState.player.y, e.x - soloState.player.x);
+    const kb = e.type === 'elite' ? 0.3 : 1.0;
+    e.vx = Math.cos(ang) * 70 * kb;
+    e.vy = Math.sin(ang) * 70 * kb;
+
+    if (e.hp <= 0) {
+        soloState.kills++;
+        soloState.gems.push({ id: soloState.nextId++, x: e.x, y: e.y, value: e.xp });
+        for (let i = 0; i < 8; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const sp = 25 + Math.random() * 55;
+            particles.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, color: '#cbd5e1', size: 8, life: 0.4, maxLife: 0.4 });
+        }
+    }
+}
+
+function showSoloLevelUp() {
+    const s = soloState;
+    const p = s.player;
+    s.xp -= s.xpNext;
+    s.lv++;
+    s.xpNext = Math.floor(s.xpNext * 1.45);
+    gameState = 'LEVELUP';
+    keys = {};
+    playSfx('levelup');
+
+    const SOLO_POOLS = {
+        naruto: [
+            { id: 'w_count', title: '多重手裏劍', desc: '手裏劍每次額外投擲 +1 枚' },
+            { id: 'w_dmg', title: '風遁・查克拉注入', desc: '手裏劍傷害提升 +12' },
+            { id: 'w_cd', title: '影分身結印加速', desc: '主武器冷卻縮短 20%' },
+            { id: 'rasengan', title: '螺旋丸領域', desc: '解鎖/擴大周身螺旋丸氣流（週期傷害＋減速）' },
+            { id: 'clone', title: '多重影分身之術', desc: '召喚 1 名鳴人分身自動投擲手裏劍（上限 2 名）' },
+            { id: 'hp', title: '九尾查克拉恢復', desc: '最大生命 +30 並回復 60 HP' },
+            { id: 'speed', title: '瞬身疾走', desc: '移動速度永久提升 15%' },
+            { id: 'magnet', title: '查克拉吸引', desc: '寶石拾取範圍擴大 50%' }
+        ],
+        kakashi: [
+            { id: 'w_count', title: '暗部連射苦無', desc: '苦無每次額外發射 +1 把' },
+            { id: 'w_dmg', title: '雷切附魔苦無', desc: '苦無暴擊傷害提升 +15' },
+            { id: 'w_cd', title: '寫輪眼動態視力', desc: '主武器冷卻縮短 22%' },
+            { id: 'raikiri', title: '雷切・環繞雷球', desc: '解鎖/增加 +1 顆高壓雷球環繞護身並擊退敵人' },
+            { id: 'lightning', title: '雷遁・連鎖紫電', desc: '解鎖/強化自動落雷，在敵群之間連鎖彈跳' },
+            { id: 'hp', title: '上忍戰鬥體魄', desc: '最大生命 +25 並回復 50 HP' },
+            { id: 'speed', title: '雷遁神速', desc: '移動速度永久提升 15%' },
+            { id: 'magnet', title: '查克拉感知', desc: '寶石拾取範圍擴大 50%' }
+        ],
+        jiraiya: [
+            { id: 'w_count', title: '亂獅子髮・千本擴散', desc: '千本散射數量額外 +2 根' },
+            { id: 'w_dmg', title: '仙法・鋼針硬化', desc: '千本針傷害提升 +10' },
+            { id: 'w_cd', title: '高速結印', desc: '主武器冷卻縮短 20%' },
+            { id: 'fireball', title: '火遁・大炎彈', desc: '解鎖/強化巨型火球，命中產生大範圍烈焰爆炸' },
+            { id: 'rasengan', title: '仙法・超大玉螺旋丸', desc: '解鎖/擴大周身仙術氣場（傷害＋減速）' },
+            { id: 'hp', title: '妙木山仙人體質', desc: '最大生命 +40 並回復 80 HP' },
+            { id: 'speed', title: '蛤蟆跳躍步法', desc: '移動速度永久提升 15%' },
+            { id: 'magnet', title: '仙術自然感知', desc: '寶石拾取範圍擴大 50%' }
+        ]
+    };
+
+    const pool = SOLO_POOLS[p.charId].filter(u => !(u.id === 'clone' && p.clones >= 2));
+    pool.sort(() => 0.5 - Math.random());
+    const choices = pool.slice(0, 3);
+
+    document.getElementById('levelup-title').innerText = `LV.${s.lv} 忍術覺醒！`;
+    document.getElementById('levelup-wait-msg').innerText = '選擇一項忍術或體術強化：';
+    const container = document.getElementById('upgrade-options');
+    container.innerHTML = '';
+
+    choices.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'upgrade-card';
+        const iconBox = document.createElement('div');
+        iconBox.className = 'upgrade-icon-box';
+        iconBox.appendChild(createUpgradeIconCanvas(c.id));
+
+        const info = document.createElement('div');
+        info.innerHTML = `<div class="upgrade-title">${c.title}</div><div class="upgrade-desc">${c.desc}</div>`;
+        card.appendChild(iconBox);
+        card.appendChild(info);
+        card.onclick = () => {
+            if (c.id === 'w_count') p.wCount += (p.charId === 'jiraiya' ? 2 : 1);
+            else if (c.id === 'w_dmg') p.wDmg += 12;
+            else if (c.id === 'w_cd') p.wCd *= 0.8;
+            else if (c.id === 'rasengan') { p.rasenLv++; p.rasenR += 20; p.rasenDmg += 7; }
+            else if (c.id === 'raikiri') { if (p.raikiriLv === 0) p.raikiriLv = 1; else { p.raikiriCnt++; p.raikiriDmg += 8; } }
+            else if (c.id === 'lightning') { if (p.lightLv === 0) p.lightLv = 1; else { p.lightBolts++; p.lightDmg += 10; } }
+            else if (c.id === 'fireball') { if (p.fireLv === 0) p.fireLv = 1; else { p.fireDmg += 16; p.fireR += 18; } }
+            else if (c.id === 'clone') p.clones++;
+            else if (c.id === 'hp') { p.maxHp += 30; p.hp = Math.min(p.maxHp, p.hp + 65); }
+            else if (c.id === 'speed') p.speed *= 1.15;
+            else if (c.id === 'magnet') p.pickupRange *= 1.5;
+
+            document.getElementById('menu-levelup').style.display = 'none';
+            if (s.xp >= s.xpNext) showSoloLevelUp();
+            else gameState = 'PLAYING';
+        };
+        container.appendChild(card);
+    });
+    document.getElementById('menu-levelup').style.display = 'block';
+}
+
+/**
+ * ============================================================================
+ * 6. 輸入發送與 60FPS 畫面渲染主迴圈
+ * ============================================================================
+ */
+window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    sendOnlineInput();
+});
+window.addEventListener('keyup', e => {
+    keys[e.code] = false;
+    sendOnlineInput();
+});
+
+function sendOnlineInput() {
+    if (mode !== 'ONLINE' || !socket || gameState !== 'PLAYING') return;
+    let dx = 0, dy = 0;
+    if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+    if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+    if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+    if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+    if (dx !== lastSentDx || dy !== lastSentDy) {
+        lastSentDx = dx;
+        lastSentDy = dy;
+        socket.emit('input', { dx, dy });
+    }
+}
+
+function initLeaves() {
+    ambientLeaves = [];
+    for (let i = 0; i < 22; i++) {
+        ambientLeaves.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: -25 - Math.random() * 35,
+            vy: 20 + Math.random() * 25,
+            sway: Math.random() * Math.PI * 2,
+            color: Math.random() > 0.35 ? '#4ade80' : '#f59e0b'
+        });
+    }
+}
+
+function renderWorld(dt) {
+    renderTime += dt;
+    if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 35);
+
+    // 連線模式下平滑插值角色與敵人位置
+    if (mode === 'ONLINE') {
+        worldState.players.forEach(p => {
+            if (p.rx === undefined) { p.rx = p.x; p.ry = p.y; }
+            p.rx += (p.x - p.rx) * Math.min(1, dt * 16);
+            p.ry += (p.y - p.ry) * Math.min(1, dt * 16);
+        });
+        worldState.enemies.forEach(e => {
+            if (e.rx === undefined) { e.rx = e.x; e.ry = e.y; }
+            e.rx += (e.x - e.rx) * Math.min(1, dt * 16);
+            e.ry += (e.y - e.ry) * Math.min(1, dt * 16);
+        });
+    }
+
+    const me = worldState.players.find(p => p.id === myId) || worldState.players[0];
+    if (me) {
+        camera.x = (me.rx ?? me.x) - canvas.width / 2;
+        camera.y = (me.ry ?? me.y) - canvas.height / 2;
+    }
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+    const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+    ctx.translate(Math.round(-camera.x + shakeX), Math.round(-camera.y + shakeY));
+
+    // 1. 無縫木葉草地
+    if (groundPattern) {
+        ctx.fillStyle = groundPattern;
+        ctx.fillRect(camera.x - 32, camera.y - 32, canvas.width + 64, canvas.height + 64);
+    }
+
+    // 2. 查克拉經驗結晶
+    for (const g of worldState.gems) {
+        const bob = Math.sin(renderTime * 6 + g.id) * 2.5;
+        const isBig = g.val >= 10;
+        const r = isBig ? 10 : 7;
+        ctx.fillStyle = isBig ? 'rgba(250, 204, 21, 0.25)' : 'rgba(56, 189, 248, 0.28)';
+        ctx.beginPath(); ctx.arc(g.x, g.y + bob, r + 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = isBig ? '#f59e0b' : '#0284c7';
+        ctx.beginPath();
+        ctx.moveTo(g.x, g.y + bob - r);
+        ctx.lineTo(g.x + r, g.y + bob);
+        ctx.lineTo(g.x, g.y + bob + r);
+        ctx.lineTo(g.x - r, g.y + bob);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = isBig ? '#fef08a' : '#bae6fd';
+        ctx.fillRect(Math.round(g.x - 2), Math.round(g.y + bob - 3), 3, 4);
+    }
+
+    // 3. 排序繪製角色、分身與敵人 (Y-Sorting)
+    const renderList = [];
+    worldState.players.forEach(p => {
+        renderList.push({ kind: 'player', y: p.ry ?? p.y, data: p });
+        if (!p.downed && p.clones > 0) {
+            for (let c = 0; c < p.clones; c++) {
+                renderList.push({
+                    kind: 'clone',
+                    y: (p.ry ?? p.y) + (c === 0 ? -22 : 22),
+                    data: p,
+                    offsetX: c === 0 ? -50 : 50,
+                    offsetY: c === 0 ? -22 : 22
+                });
+            }
+        }
+    });
+    worldState.enemies.forEach(e => {
+        renderList.push({ kind: 'enemy', y: e.ry ?? e.y, data: e });
+    });
+    renderList.sort((a, b) => a.y - b.y);
+
+    for (const item of renderList) {
+        if (item.kind === 'player') drawPlayerEntity(item.data);
+        else if (item.kind === 'clone') drawCloneEntity(item.data, item.offsetX, item.offsetY);
+        else drawEnemyEntity(item.data);
+    }
+
+    // 4. 投射物（苦無、手裏劍、千本針、大炎彈）
+    for (const pr of worldState.projectiles) {
+        ctx.save();
+        ctx.translate(pr.x, pr.y);
+        if (pr.kind === 'shuriken') {
+            ctx.rotate(renderTime * 18);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-9, -3, 18, 6);
+            ctx.fillRect(-3, -9, 6, 18);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(-8, -2, 16, 4);
+            ctx.fillRect(-2, -8, 4, 16);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-2, -2, 4, 4);
+        } else if (pr.kind === 'needle') {
+            ctx.rotate(pr.angle);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(-10, -1, 20, 3);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(6, -1, 5, 3);
+        } else if (pr.kind === 'fireball') {
+            ctx.fillStyle = 'rgba(234, 88, 12, 0.35)';
+            ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ea580c';
+            ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath(); ctx.arc(2, 0, 9, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(2, -3, 5, 5);
+        } else {
+            ctx.rotate(pr.angle);
+            ctx.fillStyle = 'rgba(186, 230, 253, 0.35)';
+            ctx.fillRect(-28, -2, 24, 4);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(-4, -3, 16, 6);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(-10, -2, 5, 4);
+        }
+        ctx.restore();
+    }
+
+    // 5. 招式特效、粒子與傷害跳字
+    for (let i = visualEffects.length - 1; i >= 0; i--) {
+        const fx = visualEffects[i];
+        fx.life -= dt;
+        if (fx.life <= 0) { visualEffects.splice(i, 1); continue; }
+        const alpha = fx.life / fx.maxLife;
+        ctx.save();
+        if (fx.kind === 'ring') {
+            ctx.strokeStyle = `rgba(125, 211, 252, ${alpha})`;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(fx.x, fx.y, fx.r * (1.05 - alpha * 0.2), 0, Math.PI * 2);
+            ctx.stroke();
+        } else if (fx.kind === 'blast') {
+            ctx.fillStyle = `rgba(249, 115, 22, ${alpha * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(fx.x, fx.y, fx.r * (1.15 - alpha * 0.3), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = `rgba(250, 204, 21, ${alpha})`;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        } else if (fx.kind === 'bolt') {
+            ctx.strokeStyle = `rgba(192, 132, 252, ${alpha})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(fx.x1, fx.y1);
+            const midX = (fx.x1 + fx.x2) / 2 + (Math.random() - 0.5) * 32;
+            const midY = (fx.y1 + fx.y2) / 2 + (Math.random() - 0.5) * 32;
+            ctx.lineTo(midX, midY);
+            ctx.lineTo(fx.x2, fx.y2);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const pt = particles[i];
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.life -= dt;
+        if (pt.life <= 0) { particles.splice(i, 1); continue; }
+        ctx.save();
+        ctx.globalAlpha = pt.life / pt.maxLife;
+        ctx.fillStyle = pt.color;
+        ctx.fillRect(Math.round(pt.x - pt.size / 2), Math.round(pt.y - pt.size / 2), pt.size, pt.size);
+        ctx.restore();
+    }
+
+    for (let i = damageTexts.length - 1; i >= 0; i--) {
+        const t = damageTexts[i];
+        t.y -= 38 * dt;
+        t.life -= dt;
+        if (t.life <= 0) { damageTexts.splice(i, 1); continue; }
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, t.life * 1.6);
+        ctx.font = "bold 16px 'Courier New', monospace";
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#000';
+        ctx.fillText(t.text, Math.round(t.x + 2), Math.round(t.y + 2));
+        ctx.fillStyle = t.color;
+        ctx.fillText(t.text, Math.round(t.x), Math.round(t.y));
+        ctx.restore();
+    }
+
+    ctx.restore();
+
+    // 飄落木葉
+    for (const leaf of ambientLeaves) {
+        leaf.sway += dt * 3;
+        leaf.x += (leaf.vx + Math.sin(leaf.sway) * 20) * dt;
+        leaf.y += leaf.vy * dt;
+        if (leaf.x < -20 || leaf.y > canvas.height + 20) {
+            leaf.x = canvas.width + 15;
+            leaf.y = Math.random() * canvas.height;
+        }
+        ctx.fillStyle = leaf.color;
+        ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), 5, 3);
+    }
+}
+
+function drawPlayerEntity(p) {
+    const px = p.rx ?? p.x;
+    const py = p.ry ?? p.y;
+
+    // 倒地救援光圈
+    if (p.downed) {
+        ctx.save();
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.arc(px, py, 66, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (p.revive > 0) {
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.25)';
+            ctx.beginPath();
+            ctx.arc(px, py, 66 * p.revive, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    // 螺旋丸領域氣流
+    if (!p.downed && p.rasenLv > 0) {
+        const r = p.rasenR || 120;
+        const pulse = Math.sin(renderTime * 9) * 4;
+        ctx.save();
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.14)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, r + pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // 地面陰影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.48)';
+    ctx.beginPath();
+    ctx.ellipse(px, py + 36, 22, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 角色 4 幀精靈圖
+    const frames = SPRITES[p.charId] || SPRITES.naruto;
+    const frameIdx = p.moving ? (Math.floor(renderTime * 11) % 4) : 1;
+    const set = frames[frameIdx];
+    let img = p.facing === 'right' ? set.right : set.left;
+    if (p.hit) img = p.facing === 'right' ? set.flashRight : set.flashLeft;
+
+    ctx.save();
+    if (p.downed) {
+        ctx.translate(Math.round(px), Math.round(py + 16));
+        ctx.rotate(Math.PI / 2);
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    } else {
+        ctx.drawImage(img, Math.round(px - img.width / 2), Math.round(py - img.height / 2));
+    }
+    ctx.restore();
+
+    // 頭頂玩家名稱標籤
+    ctx.font = "bold 12px 'Courier New', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#000';
+    ctx.fillText(p.name, Math.round(px + 1), Math.round(py - 46));
+    ctx.fillStyle = p.id === myId ? '#fbbf24' : '#38bdf8';
+    ctx.fillText(p.name, Math.round(px), Math.round(py - 47));
+
+    // 腳下血條
+    const bw = 48;
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(Math.round(px - bw / 2 - 1), Math.round(py + 42), bw + 2, 7);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(Math.round(px - bw / 2), Math.round(py + 43), bw, 5);
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(Math.round(px - bw / 2), Math.round(py + 43), Math.round(bw * (p.hp / p.maxHp)), 5);
+
+    // 卡卡西雷切環繞雷球
+    if (!p.downed && p.raikiriLv > 0) {
+        const time = renderTime * (p.raikiriSpd || 3.4);
+        const cnt = p.raikiriCnt || 2;
+        const rad = p.raikiriR || 95;
+        for (let i = 0; i < cnt; i++) {
+            const ang = time + ((Math.PI * 2) / cnt) * i;
+            const sx = px + Math.cos(ang) * rad;
+            const sy = py + Math.sin(ang) * rad;
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#7dd3fc';
+            ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(Math.round(sx - 3), Math.round(sy - 3), 5, 5);
+        }
+    }
+}
+
+function drawCloneEntity(p, ox, oy) {
+    const cx = (p.rx ?? p.x) + ox;
+    const cy = (p.ry ?? p.y) + oy;
+    const frameIdx = p.moving ? (Math.floor(renderTime * 11) % 4) : 1;
+    const set = SPRITES.naruto[frameIdx];
+    const img = p.facing === 'right' ? set.right : set.left;
+
+    ctx.save();
+    ctx.globalAlpha = 0.72;
+    ctx.drawImage(img, Math.round(cx - img.width / 2), Math.round(cy - img.height / 2));
+    ctx.restore();
+}
+
+function drawEnemyEntity(e) {
+    const ex = e.rx ?? e.x;
+    const ey = e.ry ?? e.y;
+    const spriteKey = e.type === 'basic' ? 'zetsu' : e.type === 'fast' ? 'rogue' : 'akatsuki';
+    const animSpd = e.type === 'fast' ? 12 : 8;
+    const frameIdx = Math.floor(renderTime * animSpd + e.id) % 4;
+    const set = SPRITES[spriteKey][frameIdx];
+
+    let img;
+    if (e.hit) img = e.facing === 'right' ? set.flashRight : set.flashLeft;
+    else img = e.facing === 'right' ? set.right : set.left;
+
+    const footY = ey + img.height / 2 - 4;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(ex, footY, 20, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.drawImage(img, Math.round(ex - img.width / 2), Math.round(ey - img.height / 2));
+
+    if (e.slow) {
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(ex, footY, 22, 8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    if (e.type === 'elite' && e.hp < e.maxHp) {
+        const bw = 54;
+        const topY = Math.round(ey - img.height / 2 - 10);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(Math.round(ex - bw / 2 - 1), topY - 1, bw + 2, 6);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(Math.round(ex - bw / 2), topY, Math.round(bw * (e.hp / e.maxHp)), 4);
+    }
+}
+
+let lastLoopTime = performance.now();
+function mainLoop(now) {
+    const dt = Math.min(0.1, (now - lastLoopTime) / 1000);
+    lastLoopTime = now;
+
+    if (gameState === 'PLAYING') {
+        if (mode === 'SOLO') stepSolo(dt);
+        renderWorld(dt);
+    } else if (gameState === 'START') {
+        // 主選單動態草地背景
+        ctx.imageSmoothingEnabled = false;
+        if (groundPattern) {
+            ctx.fillStyle = groundPattern;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    requestAnimationFrame(mainLoop);
+}
+
+resizeCanvas();
+buildAllSprites();
+createGroundPattern(ctx);
+initLeaves();
+requestAnimationFrame(mainLoop);
+</script>
+</body>
+</html>
