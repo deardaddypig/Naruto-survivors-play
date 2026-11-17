@@ -238,6 +238,10 @@
         .stat-item span {
             color: #fbbf24;
         }
+        #ping-badge {
+            font-size: 11px;
+            color: #4ade80;
+        }
         #btn-sfx {
             pointer-events: auto;
             background: #1e293b;
@@ -260,12 +264,12 @@
             background: linear-gradient(180deg, #161c2c 0%, #0b0f19 100%);
             border: 4px solid #fbbf24;
             box-shadow: 0 0 0 4px #000, 12px 12px 0 rgba(0, 0, 0, 0.88);
-            padding: 20px 22px;
+            padding: 18px 20px;
             text-align: center;
             pointer-events: auto;
-            width: 94%;
-            max-width: 680px;
-            max-height: 92vh;
+            width: 95%;
+            max-width: 820px;
+            max-height: 94vh;
             overflow-y: auto;
             touch-action: pan-y;
             z-index: 20;
@@ -279,7 +283,7 @@
             font-weight: bold;
             padding: 3px 10px;
             border: 2px solid #fff;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             letter-spacing: 2px;
         }
 
@@ -287,8 +291,8 @@
             color: #fbbf24;
             text-transform: uppercase;
             text-shadow: 3px 3px 0 #b91c1c, 5px 5px 0 #000;
-            font-size: 30px;
-            margin: 2px 0 6px;
+            font-size: 28px;
+            margin: 2px 0 4px;
             letter-spacing: 2px;
         }
 
@@ -299,20 +303,21 @@
             margin: 0 0 8px;
         }
 
-        /* 角色選擇卡片列 */
+        /* 7 位角色選擇網格 */
         .char-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin: 12px 0;
+            margin: 10px 0;
         }
         .char-card {
             background: #1e293b;
             border: 3px solid #475569;
-            padding: 8px 6px;
+            padding: 7px 6px;
             cursor: pointer;
-            box-shadow: 4px 4px 0 #000;
+            box-shadow: 3px 3px 0 #000;
             transition: transform 0.08s, border-color 0.08s;
+            position: relative;
         }
         .char-card:hover {
             transform: translateY(-2px);
@@ -321,39 +326,70 @@
         .char-card.selected {
             border-color: #fbbf24;
             background: #283548;
-            box-shadow: 0 0 12px rgba(251, 191, 36, 0.35), 4px 4px 0 #000;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.4), 3px 3px 0 #000;
+        }
+        .char-card.locked {
+            background: #0f131c;
+            border-color: #334155;
+            cursor: not-allowed;
+        }
+        .char-card.locked:hover {
+            transform: none;
+            border-color: #ef4444;
+        }
+        @keyframes shakeCard {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-anim {
+            animation: shakeCard 0.25s ease-in-out;
         }
         .char-preview {
-            width: 60px;
-            height: 64px;
-            margin: 0 auto 4px;
+            width: 56px;
+            height: 60px;
+            margin: 0 auto 3px;
             display: block;
         }
         .char-name {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #fbbf24;
         }
+        .char-card.locked .char-name {
+            color: #94a3b8;
+        }
         .char-role {
-            font-size: 11px;
+            font-size: 10px;
             color: #38bdf8;
-            margin: 3px 0;
+            margin: 2px 0;
         }
         .char-desc {
-            font-size: 11px;
+            font-size: 10px;
             color: #cbd5e1;
-            line-height: 1.35;
+            line-height: 1.3;
+        }
+        .lock-progress-track {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            margin-top: 4px;
+        }
+        .lock-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #fde047);
+            width: 0%;
         }
 
-        /* 玩家暱稱與連線狀態列 */
         .server-bar {
             background: rgba(0, 0, 0, 0.45);
             border: 2px solid #334155;
-            padding: 8px 12px;
-            margin-bottom: 10px;
+            padding: 7px 12px;
+            margin-bottom: 8px;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
             justify-content: center;
             font-size: 13px;
@@ -379,14 +415,14 @@
             gap: 8px;
             justify-content: center;
             align-items: center;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .action-btn {
             background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
             color: #111;
             border: 3px solid #fff;
-            padding: 10px 16px;
+            padding: 9px 15px;
             font-size: 14px;
             font-family: inherit;
             font-weight: bold;
@@ -406,7 +442,6 @@
             color: #fff;
         }
 
-        /* 房間大廳列表 */
         #lobby-box {
             display: none;
             background: rgba(15, 23, 42, 0.95);
@@ -434,7 +469,6 @@
             font-size: 12px;
         }
 
-        /* 升級三選一卡片 */
         #upgrade-options {
             display: flex;
             flex-direction: column;
@@ -503,7 +537,6 @@
             margin-top: 4px;
         }
 
-        /* 手機窄螢幕自適應微調 */
         @media (max-width: 720px) {
             #hud-header {
                 top: 18px;
@@ -538,7 +571,7 @@
             }
             #stats-panel {
                 font-size: 12px;
-                gap: 6px;
+                gap: 4px;
                 flex-direction: column;
                 align-items: flex-end;
             }
@@ -547,7 +580,10 @@
                 left: 8px;
             }
             h1 {
-                font-size: 24px;
+                font-size: 22px;
+            }
+            .char-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             .char-desc {
                 display: none;
@@ -591,6 +627,7 @@
 
             <div id="stats-panel" class="retro-panel">
                 <div class="stat-item">擊破: <span id="ui-kills">0</span></div>
+                <div id="ping-badge">PING: --</div>
                 <button id="btn-sfx" onclick="toggleSfx()">SFX: ON</button>
             </div>
         </div>
@@ -602,12 +639,12 @@
     <!-- 主選單與 3 人連線大廳 -->
     <div id="menu-start" class="modal">
         <div class="badge-sub">KONOHA 3-PLAYER ONLINE CO-OP</div>
-        <h1>SHINOBI SURVIVORS</h1>
+        <h1>NARUTO SURVIVORS</h1>
         <p style="color:#94a3b8; margin:0 0 6px; font-size:12px;">
-            支援電腦 <b>WASD / 方向鍵</b> 與 手機 <b>單指觸控滑動方向盤</b>
+            支援電腦 <b>WASD / 方向鍵</b> 與 手機 <b>單指滑動方向盤</b> • 累計殺敵: <b id="total-kills-display" style="color:#fbbf24;">0</b>
         </p>
 
-        <!-- 三大忍者選擇 -->
+        <!-- 7 位忍者選擇網格 -->
         <div class="char-grid">
             <div class="char-card selected" id="card-naruto" onclick="chooseCharacter('naruto')">
                 <canvas class="char-preview" id="prev-naruto" width="76" height="84"></canvas>
@@ -618,14 +655,42 @@
             <div class="char-card" id="card-kakashi" onclick="chooseCharacter('kakashi')">
                 <canvas class="char-preview" id="prev-kakashi" width="76" height="84"></canvas>
                 <div class="char-name">旗木卡卡西</div>
-                <div class="char-role">高爆 • 雷切與紫電</div>
+                <div class="char-role">敏捷 • 雷切與紫電</div>
                 <div class="char-desc">高暴擊苦無，可覺醒環繞雷球與連鎖閃電</div>
             </div>
             <div class="char-card" id="card-jiraiya" onclick="chooseCharacter('jiraiya')">
                 <canvas class="char-preview" id="prev-jiraiya" width="80" height="88"></canvas>
                 <div class="char-name">自來也</div>
                 <div class="char-role">重裝 • 火遁大炎彈</div>
-                <div class="char-desc">高血量＋扇形千本散射，可發射範圍爆炸大炎彈</div>
+                <div class="char-desc">高血量＋千本散射，可發射範圍爆炸大炎彈</div>
+            </div>
+            <div class="char-card" id="card-sasuke" onclick="chooseCharacter('sasuke')">
+                <canvas class="char-preview" id="prev-sasuke" width="76" height="84"></canvas>
+                <div class="char-name">宇智波佐助</div>
+                <div class="char-role">雷炎 • 千鳥流與天照</div>
+                <div class="char-desc">千鳥千本連射，可覺醒環繞雷刃與天照黑炎</div>
+            </div>
+            <div class="char-card" id="card-sakura" onclick="chooseCharacter('sakura')">
+                <canvas class="char-preview" id="prev-sakura" width="76" height="84"></canvas>
+                <div class="char-name">春野櫻</div>
+                <div class="char-role">怪力醫療 • 櫻花衝與百豪</div>
+                <div class="char-desc">自帶回血＋高傷苦無，可發動震擊波與群體治療</div>
+            </div>
+            <div class="char-card" id="card-shikamaru" onclick="chooseCharacter('shikamaru')">
+                <canvas class="char-preview" id="prev-shikamaru" width="76" height="84"></canvas>
+                <div class="char-name">奈良鹿丸</div>
+                <div class="char-role">控場 • 影子模仿與縫合</div>
+                <div class="char-desc">查克拉雙刃，黑影領域可造成 70% 極強減速</div>
+            </div>
+            <!-- 隱藏角色：四代目波風水門 -->
+            <div class="char-card locked" id="card-minato" onclick="chooseCharacter('minato')">
+                <canvas class="char-preview" id="prev-minato" width="80" height="88"></canvas>
+                <div class="char-name" id="minato-title">？？？ (隱藏角色)</div>
+                <div class="char-role" id="minato-role" style="color:#f87171;">🔒 累計擊殺 1000 人解鎖</div>
+                <div class="char-desc" id="minato-desc">解鎖進度: 0 / 1000</div>
+                <div class="lock-progress-track" id="minato-progress-box">
+                    <div class="lock-progress-fill" id="minato-progress-fill"></div>
+                </div>
             </div>
         </div>
 
@@ -689,10 +754,79 @@
 <script>
 /**
  * ============================================================================
- * 內置雲端多人連線伺服器網址
+ * 內置雲端多人連線伺服器網址 & 隱藏角色解鎖門檻
  * ============================================================================
  */
 const SERVER_URL = 'https://naruto-survivors.onrender.com';
+const MINATO_UNLOCK_KILLS = 1000;
+
+let accumulatedKills = parseInt(localStorage.getItem('naruto_coop_total_kills') || '0', 10) || 0;
+let lastSyncedOnlineKills = 0;
+
+function isMinatoUnlocked() {
+    return accumulatedKills >= MINATO_UNLOCK_KILLS;
+}
+
+function addAccumulatedKills(delta) {
+    if (delta <= 0) return;
+    const wasUnlocked = isMinatoUnlocked();
+    accumulatedKills += delta;
+    localStorage.setItem('naruto_coop_total_kills', String(accumulatedKills));
+    refreshMinatoUnlockUI();
+
+    if (!wasUnlocked && isMinatoUnlocked()) {
+        playSfx('levelup');
+        damageTexts.push({
+            x: camera.x + canvas.width / 2,
+            y: camera.y + canvas.height / 2 - 60,
+            text: '★ 隱藏角色「四代目・波風水門」已解鎖！ ★',
+            color: '#facc15',
+            life: 3.0
+        });
+    }
+}
+
+function refreshMinatoUnlockUI() {
+    const totalEl = document.getElementById('total-kills-display');
+    if (totalEl) totalEl.innerText = accumulatedKills;
+
+    const card = document.getElementById('card-minato');
+    const titleEl = document.getElementById('minato-title');
+    const roleEl = document.getElementById('minato-role');
+    const descEl = document.getElementById('minato-desc');
+    const progBox = document.getElementById('minato-progress-box');
+    const progFill = document.getElementById('minato-progress-fill');
+    const prevCanvas = document.getElementById('prev-minato');
+
+    if (!card || !prevCanvas || !SPRITES.minato.length) return;
+    const cx = prevCanvas.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+    cx.clearRect(0, 0, prevCanvas.width, prevCanvas.height);
+
+    if (isMinatoUnlocked()) {
+        card.classList.remove('locked');
+        titleEl.innerText = '波風水門';
+        roleEl.innerText = '金色閃光 • 飛雷神與螺旋丸';
+        roleEl.style.color = '#38bdf8';
+        descEl.innerText = '極速飛雷神苦無連射，發動金色閃光瞬殺斬擊';
+        if (progBox) progBox.style.display = 'none';
+
+        const img = SPRITES.minato[0].right;
+        cx.drawImage(img, Math.round((prevCanvas.width - img.width) / 2), Math.round((prevCanvas.height - img.height) / 2));
+    } else {
+        card.classList.add('locked');
+        titleEl.innerText = '？？？ (隱藏角色)';
+        roleEl.innerText = '🔒 累計擊殺 1000 人解鎖';
+        roleEl.style.color = '#f87171';
+        descEl.innerText = `解鎖進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}`;
+        if (progBox) progBox.style.display = 'block';
+        if (progFill) progFill.style.width = `${Math.min(100, (accumulatedKills / MINATO_UNLOCK_KILLS) * 100)}%`;
+
+        // 繪製全黑神秘剪影（完全隱藏角色樣貌）
+        const silhouette = SPRITES.minato[0].silhouetteRight;
+        cx.drawImage(silhouette, Math.round((prevCanvas.width - silhouette.width) / 2), Math.round((prevCanvas.height - silhouette.height) / 2));
+    }
+}
 
 /**
  * ============================================================================
@@ -777,7 +911,7 @@ function playSfx(type) {
 
 /**
  * ============================================================================
- * 2. 高精細點陣角色與敵人烘焙引擎 (鳴人 / 卡卡西 / 自來也 + 白絕 / 叛忍 / 曉)
+ * 2. 高精細點陣角色與敵人烘焙引擎 (7 位可選角色 + 3 種敵人)
  * ============================================================================
  */
 class PixelBuilder {
@@ -834,7 +968,7 @@ class PixelBuilder {
         }
     }
     bake(scale = 2) {
-        const makeCanvas = (flipX, whiteFlash) => {
+        const makeCanvas = (flipX, overrideColor = null) => {
             const c = document.createElement('canvas');
             c.width = this.w * scale;
             c.height = this.h * scale;
@@ -844,7 +978,7 @@ class PixelBuilder {
                 for (let x = 0; x < this.w; x++) {
                     const col = this.grid[y][x];
                     if (!col) continue;
-                    cx.fillStyle = whiteFlash ? '#ffffff' : col;
+                    cx.fillStyle = overrideColor || col;
                     const drawX = flipX ? (this.w - 1 - x) * scale : x * scale;
                     cx.fillRect(drawX, y * scale, scale, scale);
                 }
@@ -852,14 +986,16 @@ class PixelBuilder {
             return c;
         };
         return {
-            right: makeCanvas(false, false),
-            left: makeCanvas(true, false),
-            flashRight: makeCanvas(false, true),
-            flashLeft: makeCanvas(true, true)
+            right: makeCanvas(false, null),
+            left: makeCanvas(true, null),
+            flashRight: makeCanvas(false, '#ffffff'),
+            flashLeft: makeCanvas(true, '#ffffff'),
+            silhouetteRight: makeCanvas(false, '#06080f')
         };
     }
 }
 
+// 1. 漩渦鳴人
 function buildNarutoFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -922,6 +1058,7 @@ function buildNarutoFrame(frame) {
     return pb.bake(2);
 }
 
+// 2. 旗木卡卡西
 function buildKakashiFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -977,6 +1114,7 @@ function buildKakashiFrame(frame) {
     return pb.bake(2);
 }
 
+// 3. 自來也
 function buildJiraiyaFrame(frame) {
     const pb = new PixelBuilder(40, 44);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -1038,6 +1176,238 @@ function buildJiraiyaFrame(frame) {
     return pb.bake(2);
 }
 
+// 4. 宇智波佐助 (深藍高領忍服 + 紫色粗繩腰帶 + 寫輪眼紅瞳)
+function buildSasukeFrame(frame) {
+    const pb = new PixelBuilder(38, 42);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+    const ropeWave = [0, 1, 0, -1][frame];
+
+    // 背後紫色粗繩結尾端
+    pb.line(12, 26 + bob, 7, 28 + bob + ropeWave, '#7e22ce');
+    pb.line(12, 27 + bob, 8, 30 + bob + ropeWave, '#9333ea');
+
+    // 後方手臂（黑色護臂）
+    const backArmX = 11 - Math.abs(legSwing) * 0.5;
+    pb.line(14, 22 + bob, backArmX, 25 + bob, '#1e293b');
+    pb.rect(backArmX - 1, 26 + bob, 2, 2, '#ffcca8');
+
+    // 雙腿（深藍戰裙布＋黑色長褲＋涼鞋）
+    const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
+    pb.line(16, 29 + bob, lLegX, 36, '#0f172a');
+    pb.line(17, 29 + bob, lLegX + 1, 36, '#1e293b');
+    pb.rect(lLegX - 1, 36, 4, 2, '#1e293b');
+
+    pb.line(19, 29 + bob, rLegX, 36, '#1e293b');
+    pb.line(20, 29 + bob, rLegX + 1, 36, '#334155');
+    pb.rect(rLegX - 1, 36, 4, 2, '#1e293b');
+
+    // 深藍宇智波高領上衣＋戰裙下擺
+    pb.rect(14, 20 + bob, 10, 11, '#1e3a8a');
+    pb.rect(15, 20 + bob, 8, 10, '#1d4ed8');
+    // 胸口拉鍊微開
+    pb.rect(18, 20 + bob, 2, 3, '#ffcca8');
+    // 標誌性紫色注連繩腰帶
+    pb.rect(13, 26 + bob, 12, 2, '#7e22ce');
+    pb.line(14, 26 + bob, 24, 27 + bob, '#a855f7');
+
+    // 俊朗冷酷臉龐＋寫輪眼紅瞳
+    pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
+    pb.rect(15, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(16, 14 + bob, 2, 2, '#ef4444'); // 寫輪眼紅瞳
+    pb.rect(21, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(22, 14 + bob, 2, 2, '#ef4444');
+    pb.line(18, 18 + bob, 21, 18 + bob, '#b56545');
+
+    // 佐助招牌深藍黑鴨尾刺蝟髮＋修飾臉側的長劉海
+    pb.oval(18, 8 + bob, 8.2, 4.2, '#0f172a');
+    pb.oval(17, 7 + bob, 7.0, 3.2, '#1e293b');
+    pb.line(11, 5 + bob, 15, 8 + bob, '#1e293b'); // 後腦鴨尾尖刺
+    pb.line(10, 8 + bob, 14, 10 + bob, '#334155');
+    // 臉頰兩側長劉海
+    pb.line(14, 10 + bob, 13, 17 + bob, '#0f172a');
+    pb.line(23, 10 + bob, 24, 16 + bob, '#1e293b');
+    pb.line(19, 9 + bob, 19, 13 + bob, '#0f172a');
+
+    // 前方手臂（草薙劍氣光澤）
+    const frontArmX = 11 + (legSwing * 0.4);
+    pb.line(15, 22 + bob, frontArmX, 26 + bob, '#1e293b');
+    pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#ffcca8');
+    pb.line(frontArmX - 1, 27 + bob, frontArmX - 5, 29 + bob, '#38bdf8'); // 千鳥微光
+
+    pb.addOutline('#0a0d18');
+    return pb.bake(2);
+}
+
+// 5. 春野櫻 (粉紅短髮 + 紅護額 + 百豪之印 + 紅白忍服)
+function buildSakuraFrame(frame) {
+    const pb = new PixelBuilder(38, 42);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+
+    // 後方手臂（黑拳套）
+    const backArmX = 11 - Math.abs(legSwing) * 0.5;
+    pb.line(14, 22 + bob, backArmX, 25 + bob, '#ffcca8');
+    pb.rect(backArmX - 1, 26 + bob, 2, 2, '#1e293b');
+
+    // 雙腿（粉紅百褶短裙＋黑緊身褲＋長靴）
+    const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
+    pb.line(16, 29 + bob, lLegX, 36, '#1e293b');
+    pb.rect(lLegX - 1, 34, 4, 4, '#0f172a');
+
+    pb.line(19, 29 + bob, rLegX, 36, '#334155');
+    pb.rect(rLegX - 1, 34, 4, 4, '#1e293b');
+
+    // 緋紅無袖忍服上衣＋白色圓徽＋粉紅裙擺
+    pb.rect(14, 21 + bob, 10, 7, '#e11d48');
+    pb.rect(15, 21 + bob, 8, 6, '#f43f5e');
+    pb.rect(18, 22 + bob, 2, 2, '#ffffff'); // 白色圓紋
+    pb.rect(13, 27 + bob, 12, 3, '#fda4af'); // 粉紅裙擺
+
+    // 臉部與翠綠大眼＋額頭紫色百豪之印
+    pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
+    pb.rect(15, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(16, 14 + bob, 2, 2, '#16a34a'); // 翠綠瞳孔
+    pb.rect(21, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(22, 14 + bob, 2, 2, '#16a34a');
+    pb.px(19, 12 + bob, '#7e22ce'); // 額頭百豪之印菱形！
+    pb.line(18, 18 + bob, 20, 18 + bob, '#e11d48');
+
+    // 紅色木葉護額（當作髮箍戴在頭頂）
+    pb.rect(12, 9 + bob, 14, 3, '#dc2626');
+    pb.rect(16, 9 + bob, 7, 3, '#cbd5e1');
+
+    // 櫻花粉紅齊肩短髮
+    pb.oval(18, 8 + bob, 8.2, 4.2, '#f472b6');
+    pb.oval(18, 7 + bob, 7.0, 3.0, '#f9a8d4');
+    pb.rect(12, 11 + bob, 3, 7, '#f472b6'); // 左側鬢髮
+    pb.rect(24, 11 + bob, 2, 6, '#f9a8d4'); // 右側鬢髮
+    pb.line(16, 10 + bob, 15, 12 + bob, '#fbcfe8');
+    pb.line(21, 10 + bob, 22, 12 + bob, '#fbcfe8');
+
+    // 前方手臂（戴黑色怪力拳套）
+    const frontArmX = 11 + (legSwing * 0.4);
+    pb.line(15, 22 + bob, frontArmX, 26 + bob, '#ffcca8');
+    pb.rect(frontArmX - 1, 25 + bob, 3, 3, '#0f172a');
+
+    pb.addOutline('#180c16');
+    return pb.bake(2);
+}
+
+// 6. 奈良鹿丸 (鳳梨頭沖天馬尾 + 綠馬甲 + 黑長袖)
+function buildShikamaruFrame(frame) {
+    const pb = new PixelBuilder(38, 42);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+    const ponyWave = [0, 1, 0, -1][frame];
+
+    // 後方黑袖手臂
+    const backArmX = 11 - Math.abs(legSwing) * 0.5;
+    pb.line(14, 22 + bob, backArmX, 25 + bob, '#1e293b');
+    pb.rect(backArmX - 1, 26 + bob, 2, 2, '#ffcca8');
+
+    // 雙腿（黑色七分忍褲＋白色小腿繃帶）
+    const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
+    pb.line(16, 29 + bob, lLegX, 36, '#0f172a');
+    pb.rect(lLegX - 1, 36, 4, 2, '#1e293b');
+
+    pb.line(19, 29 + bob, rLegX, 36, '#1e293b');
+    pb.rect(rLegX - 1, 33, 3, 2, '#f8fafc');
+    pb.rect(rLegX - 1, 36, 4, 2, '#1e293b');
+
+    // 綠色木葉馬甲＋黑色緊身衣
+    pb.rect(14, 20 + bob, 10, 9, '#15803d');
+    pb.rect(15, 20 + bob, 8, 8, '#22c55e');
+    pb.line(19, 20 + bob, 19, 28 + bob, '#14532d');
+
+    // 臉部與冷靜眼神
+    pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
+    pb.rect(15, 14 + bob, 3, 1, '#0f172a'); // 銳利半睜眼
+    pb.rect(21, 14 + bob, 3, 1, '#0f172a');
+    pb.px(12, 16 + bob, '#cbd5e1'); // 銀色耳環
+    pb.line(18, 18 + bob, 20, 18 + bob, '#b56545');
+
+    // 額頭劉海與招牌【沖天鳳梨頭馬尾】
+    pb.oval(19, 10 + bob, 6.5, 2.5, '#0f172a');
+    // 頭頂高高束起的散開馬尾
+    pb.rect(17, 7 + bob, 3, 2, '#334155');
+    pb.line(18, 7 + bob, 13, 3 + bob + ponyWave, '#0f172a');
+    pb.line(18, 6 + bob, 15, 1 + bob + ponyWave, '#1e293b');
+    pb.line(19, 6 + bob, 18, 1 + bob + ponyWave, '#0f172a');
+    pb.line(19, 7 + bob, 12, 6 + bob + ponyWave, '#1e293b');
+
+    // 前方黑袖手臂
+    const frontArmX = 11 + (legSwing * 0.4);
+    pb.line(15, 22 + bob, frontArmX, 26 + bob, '#1e293b');
+    pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#ffcca8');
+
+    pb.addOutline('#0c1018');
+    return pb.bake(2);
+}
+
+// 7. 隱藏角色：四代目・波風水門 (金髮藍護額 + 紅焰白底四代目火影御神袍 + 飛雷神苦無)
+function buildMinatoFrame(frame) {
+    const pb = new PixelBuilder(40, 44);
+    const bob = (frame === 1 || frame === 3) ? -1 : 0;
+    const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
+    const cloakWave = [0, 2, 0, -2][frame];
+
+    // 1. 飄揚的白色【四代目火影御神袍】與下擺【鮮紅火焰紋】
+    for (let y = 19; y <= 37; y++) {
+        const halfW = 6 + Math.floor((y - 19) * 0.35);
+        pb.rect(20 - halfW - cloakWave * 0.5, y + bob, halfW * 2, 1, '#f8fafc');
+        pb.rect(20 - halfW - cloakWave * 0.5, y + bob, 2, 1, '#cbd5e1');
+    }
+    // 御神袍下擺經典紅色三角火焰紋
+    for (let x = 10; x <= 29; x += 4) {
+        pb.line(x - cloakWave, 37 + bob, x + 1 - cloakWave, 34 + bob, '#ef4444');
+        pb.line(x + 2 - cloakWave, 37 + bob, x + 1 - cloakWave, 34 + bob, '#dc2626');
+    }
+
+    // 2. 內層綠色上忍馬甲與藍色忍褲
+    pb.rect(16, 20 + bob, 8, 9, '#15803d');
+    pb.rect(17, 20 + bob, 6, 8, '#22c55e');
+    const lLegX = 16 - legSwing, rLegX = 21 + legSwing;
+    pb.line(17, 29 + bob, lLegX, 39, '#1e3a8a');
+    pb.rect(lLegX - 1, 39, 4, 2, '#0f172a');
+    pb.line(20, 29 + bob, rLegX, 39, '#1d4ed8');
+    pb.rect(rLegX - 1, 39, 4, 2, '#0f172a');
+
+    // 3. 溫柔帥氣臉龐＋水藍瞳孔
+    pb.oval(20, 15 + bob, 6.2, 5.4, '#ffcca8');
+    pb.rect(16, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(17, 14 + bob, 2, 2, '#0284c7');
+    pb.rect(22, 14 + bob, 3, 2, '#ffffff');
+    pb.rect(23, 14 + bob, 2, 2, '#0284c7');
+    pb.line(19, 18 + bob, 22, 18 + bob, '#b56545');
+
+    // 4. 藍色木葉護額
+    pb.rect(13, 10 + bob, 14, 3, '#1d4ed8');
+    pb.rect(16, 10 + bob, 9, 3, '#cbd5e1');
+    pb.px(20, 11 + bob, '#334155');
+
+    // 5. 水門招牌金色刺蝟髮＋臉頰兩側長金髮鬢角
+    pb.oval(19, 6 + bob, 9.0, 3.8, '#eab308');
+    pb.oval(19, 5 + bob, 7.5, 2.8, '#facc15');
+    pb.line(14, 2 + bob, 16, 6 + bob, '#fef08a');
+    pb.line(19, 1 + bob, 19, 5 + bob, '#fef08a');
+    pb.line(23, 2 + bob, 22, 6 + bob, '#fef08a');
+    pb.line(26, 4 + bob, 24, 7 + bob, '#facc15');
+    // 兩側垂落長金髮
+    pb.line(13, 11 + bob, 12, 18 + bob, '#facc15');
+    pb.line(25, 11 + bob, 26, 18 + bob, '#fef08a');
+
+    // 6. 右手握持三叉【飛雷神苦無】
+    const armX = 25 + (legSwing * 0.3);
+    pb.rect(armX, 24 + bob, 3, 2, '#ffcca8');
+    pb.line(armX + 2, 24 + bob, armX + 8, 22 + bob, '#cbd5e1'); // 苦無刃
+    pb.px(armX + 5, 21 + bob, '#facc15'); // 金色閃光
+
+    pb.addOutline('#120e1c');
+    return pb.bake(2);
+}
+
+// 敵人精靈：白絕、暗部叛忍、曉組織精英
 function buildZetsuFrame(frame) {
     const pb = new PixelBuilder(34, 38);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -1147,6 +1517,10 @@ const SPRITES = {
     naruto: [],
     kakashi: [],
     jiraiya: [],
+    sasuke: [],
+    sakura: [],
+    shikamaru: [],
+    minato: [],
     zetsu: [],
     rogue: [],
     akatsuki: []
@@ -1157,18 +1531,24 @@ function buildAllSprites() {
         SPRITES.naruto.push(buildNarutoFrame(f));
         SPRITES.kakashi.push(buildKakashiFrame(f));
         SPRITES.jiraiya.push(buildJiraiyaFrame(f));
+        SPRITES.sasuke.push(buildSasukeFrame(f));
+        SPRITES.sakura.push(buildSakuraFrame(f));
+        SPRITES.shikamaru.push(buildShikamaruFrame(f));
+        SPRITES.minato.push(buildMinatoFrame(f));
         SPRITES.zetsu.push(buildZetsuFrame(f));
         SPRITES.rogue.push(buildRogueFrame(f));
         SPRITES.akatsuki.push(buildAkatsukiFrame(f));
     }
 
-    ['naruto', 'kakashi', 'jiraiya'].forEach(cid => {
+    ['naruto', 'kakashi', 'jiraiya', 'sasuke', 'sakura', 'shikamaru'].forEach(cid => {
         const c = document.getElementById(`prev-${cid}`);
         const cx = c.getContext('2d');
         cx.imageSmoothingEnabled = false;
         const img = SPRITES[cid][0].right;
         cx.drawImage(img, Math.round((c.width - img.width) / 2), Math.round((c.height - img.height) / 2));
     });
+
+    refreshMinatoUnlockUI();
 }
 
 function updateHudPortrait(charId) {
@@ -1176,13 +1556,18 @@ function updateHudPortrait(charId) {
     const pctx = pCanvas.getContext('2d');
     pctx.imageSmoothingEnabled = false;
     pctx.clearRect(0, 0, 58, 58);
-    const img = SPRITES[charId][0].right;
+    const set = SPRITES[charId] || SPRITES.naruto;
+    const img = set[0].right;
     pctx.drawImage(img, 12, 2, 52, 52, 0, 2, 58, 58);
 
     const names = {
         naruto: 'UZUMAKI NARUTO',
         kakashi: 'HATAKE KAKASHI',
-        jiraiya: 'SAGE JIRAIYA'
+        jiraiya: 'SAGE JIRAIYA',
+        sasuke: 'UCHIHA SASUKE',
+        sakura: 'HARUNO SAKURA',
+        shikamaru: 'NARA SHIKAMARU',
+        minato: 'HOKAGE MINATO'
     };
     document.getElementById('hud-char-name').innerText = names[charId] || 'SHINOBI';
 }
@@ -1208,25 +1593,37 @@ function createUpgradeIconCanvas(type) {
         cx.beginPath(); cx.arc(17, 17, 7, 0, Math.PI * 2); cx.fill();
         cx.fillStyle = '#ffffff';
         cx.fillRect(14, 14, 4, 4);
-    } else if (type === 'lightning') {
-        cx.fillStyle = '#c084fc';
+    } else if (type === 'lightning' || type === 'hiraishin') {
+        cx.fillStyle = type === 'hiraishin' ? '#facc15' : '#c084fc';
         cx.fillRect(16, 4, 5, 11);
         cx.fillRect(12, 13, 8, 5);
         cx.fillRect(15, 17, 5, 12);
-    } else if (type === 'fireball') {
-        cx.fillStyle = '#ea580c';
+    } else if (type === 'fireball' || type === 'amaterasu') {
+        cx.fillStyle = type === 'amaterasu' ? '#581c87' : '#ea580c';
         cx.beginPath(); cx.arc(17, 18, 11, 0, Math.PI * 2); cx.fill();
-        cx.fillStyle = '#facc15';
+        cx.fillStyle = type === 'amaterasu' ? '#09090b' : '#facc15';
         cx.beginPath(); cx.arc(17, 19, 6, 0, Math.PI * 2); cx.fill();
-    } else if (type === 'clone') {
-        cx.drawImage(SPRITES.naruto[0].right, 14, 4, 48, 48, 2, 2, 30, 30);
-    } else if (type === 'hp') {
-        cx.fillStyle = '#ef4444';
+    } else if (type === 'cherry_smash') {
+        cx.strokeStyle = '#f472b6';
+        cx.lineWidth = 3;
+        cx.beginPath(); cx.arc(17, 17, 12, 0, Math.PI * 2); cx.stroke();
+        cx.fillStyle = '#fbcfe8';
+        cx.fillRect(13, 13, 8, 8);
+    } else if (type === 'byakugou' || type === 'hp') {
+        cx.fillStyle = type === 'byakugou' ? '#22c55e' : '#ef4444';
         cx.fillRect(7, 10, 8, 8);
         cx.fillRect(19, 10, 8, 8);
         cx.fillRect(5, 12, 24, 8);
         cx.fillRect(9, 20, 16, 5);
         cx.fillRect(13, 25, 8, 4);
+    } else if (type === 'shadow_bind' || type === 'shadow_stitch') {
+        cx.fillStyle = '#0f172a';
+        cx.beginPath(); cx.arc(17, 18, 12, 0, Math.PI * 2); cx.fill();
+        cx.strokeStyle = '#94a3b8';
+        cx.lineWidth = 2;
+        cx.stroke();
+    } else if (type === 'clone') {
+        cx.drawImage(SPRITES.naruto[0].right, 14, 4, 48, 48, 2, 2, 30, 30);
     } else if (type === 'speed') {
         cx.fillStyle = '#38bdf8';
         cx.fillRect(5, 10, 20, 3);
@@ -1291,7 +1688,7 @@ function createGroundPattern(ctx) {
 
 /**
  * ============================================================================
- * 4. 連線與遊戲狀態管理 (自動連接內置伺服器 + 單機備援)
+ * 4. 連線與遊戲狀態管理 (本地預測平滑移動 + 手機觸控搖桿)
  * ============================================================================
  */
 const canvas = document.getElementById('gameCanvas');
@@ -1312,13 +1709,14 @@ let myId = 'local';
 let isHost = false;
 let currentRoomCode = '';
 let pendingAction = null;
+let currentPing = 0;
 
 let keys = {};
 let lastSentDx = 0;
 let lastSentDy = 0;
 let lastInputSendTime = 0;
 
-// 手機浮動虛擬搖桿狀態
+// 手機浮動虛擬搖桿
 const touchJoy = {
     activeId: null,
     startX: 0,
@@ -1357,7 +1755,6 @@ function getMoveVector() {
     return { dx: touchJoy.dx, dy: touchJoy.dy };
 }
 
-// 綁定手機觸控搖桿事件（僅作用於主遊戲畫布，不影響按鈕與選單點擊）
 canvas.addEventListener('touchstart', (e) => {
     if (gameState !== 'PLAYING') return;
     e.preventDefault();
@@ -1402,7 +1799,6 @@ canvas.addEventListener('touchmove', (e) => {
                 touchJoy.dx = 0;
                 touchJoy.dy = 0;
             }
-            sendOnlineInput();
             break;
         }
     }
@@ -1447,15 +1843,52 @@ let ambientLeaves = [];
 const savedName = localStorage.getItem('naruto_coop_name') || '';
 if (savedName) document.getElementById('input-name').value = savedName;
 
+const ALL_CHAR_IDS = ['naruto', 'kakashi', 'jiraiya', 'sasuke', 'sakura', 'shikamaru', 'minato'];
+const CHAR_DISPLAY_NAMES = {
+    naruto: '漩渦鳴人',
+    kakashi: '旗木卡卡西',
+    jiraiya: '自來也',
+    sasuke: '宇智波佐助',
+    sakura: '春野櫻',
+    shikamaru: '奈良鹿丸',
+    minato: '波風水門'
+};
+
 function chooseCharacter(charId) {
+    if (charId === 'minato' && !isMinatoUnlocked()) {
+        const card = document.getElementById('card-minato');
+        card.classList.remove('shake-anim');
+        void card.offsetWidth;
+        card.classList.add('shake-anim');
+        const remain = MINATO_UNLOCK_KILLS - accumulatedKills;
+        document.getElementById('lobby-error').innerText = `隱藏角色尚未解鎖！還需要擊殺 ${remain} 個敵人（目前 ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}）`;
+        return;
+    }
+
+    document.getElementById('lobby-error').innerText = '';
     selectedChar = charId;
-    ['naruto', 'kakashi', 'jiraiya'].forEach(id => {
-        document.getElementById(`card-${id}`).classList.toggle('selected', id === charId);
+    ALL_CHAR_IDS.forEach(id => {
+        const el = document.getElementById(`card-${id}`);
+        if (el) el.classList.toggle('selected', id === charId);
     });
     if (socket && socket.connected && currentRoomCode) {
         socket.emit('selectChar', charId);
     }
 }
+
+setInterval(() => {
+    if (socket && socket.connected) {
+        const start = performance.now();
+        socket.emit('pingCheck', () => {
+            currentPing = Math.round(performance.now() - start);
+            const pb = document.getElementById('ping-badge');
+            if (pb) {
+                pb.innerText = `PING: ${currentPing}ms`;
+                pb.style.color = currentPing < 100 ? '#4ade80' : currentPing < 200 ? '#fbbf24' : '#f87171';
+            }
+        });
+    }
+}, 2500);
 
 function connectSocket(callback) {
     const name = document.getElementById('input-name').value.trim() || '木葉忍者';
@@ -1478,7 +1911,10 @@ function connectSocket(callback) {
 
     if (socket) return;
 
-    socket = io(SERVER_URL, { transports: ['websocket', 'polling'] });
+    socket = io(SERVER_URL, {
+        transports: ['websocket', 'polling'],
+        upgrade: true
+    });
 
     socket.on('connect', () => {
         myId = socket.id;
@@ -1508,7 +1944,6 @@ function connectSocket(callback) {
         document.getElementById('lobby-box').style.display = 'block';
         document.getElementById('display-room-code').innerText = code;
 
-        const charNames = { naruto: '漩渦鳴人', kakashi: '旗木卡卡西', jiraiya: '自來也' };
         const slotsEl = document.getElementById('lobby-slots');
         slotsEl.innerHTML = '';
 
@@ -1519,7 +1954,7 @@ function connectSocket(callback) {
             if (p) {
                 div.innerHTML = `
                     <div style="color:#fbbf24; font-weight:bold;">${i + 1}P ${p.name} ${p.id === hostId ? '(房主)' : ''}</div>
-                    <div style="color:#38bdf8; margin-top:4px;">${charNames[p.charId]}</div>
+                    <div style="color:#38bdf8; margin-top:4px;">${CHAR_DISPLAY_NAMES[p.charId] || p.charId}</div>
                 `;
             } else {
                 div.innerHTML = `<div style="color:#64748b;">${i + 1}P 等待隊友加入...</div>`;
@@ -1534,6 +1969,7 @@ function connectSocket(callback) {
     socket.on('gameStarted', () => {
         mode = 'ONLINE';
         gameState = 'PLAYING';
+        lastSyncedOnlineKills = 0;
         resetAllInputs();
         damageTexts = [];
         visualEffects = [];
@@ -1548,22 +1984,38 @@ function connectSocket(callback) {
     socket.on('state', (snap) => {
         const oldPlayers = new Map(worldState.players.map(p => [p.id, p]));
         snap.players.forEach(np => {
+            if (np.id === myId && typeof np.kills === 'number' && np.kills > lastSyncedOnlineKills) {
+                addAccumulatedKills(np.kills - lastSyncedOnlineKills);
+                lastSyncedOnlineKills = np.kills;
+            }
+
             const op = oldPlayers.get(np.id);
-            if (op) {
-                np.rx = op.rx !== undefined ? op.rx : op.x;
-                np.ry = op.ry !== undefined ? op.ry : op.y;
-            } else {
+            if (!op || op.rx === undefined) {
                 np.rx = np.x;
                 np.ry = np.y;
+            } else if (np.id === myId) {
+                np.rx = op.rx;
+                np.ry = op.ry;
+                const drift = Math.hypot(np.x - np.rx, np.y - np.ry);
+                if (np.downed || drift > 180) {
+                    np.rx = np.x;
+                    np.ry = np.y;
+                } else if (drift > 28) {
+                    np.rx += (np.x - np.rx) * 0.22;
+                    np.ry += (np.y - np.ry) * 0.22;
+                }
+            } else {
+                np.rx = op.rx;
+                np.ry = op.ry;
             }
         });
 
         const oldEnemies = new Map(worldState.enemies.map(e => [e.id, e]));
         snap.enemies.forEach(ne => {
             const oe = oldEnemies.get(ne.id);
-            if (oe) {
-                ne.rx = oe.rx !== undefined ? oe.rx : oe.x;
-                ne.ry = oe.ry !== undefined ? oe.ry : oe.y;
+            if (oe && oe.rx !== undefined) {
+                ne.rx = oe.rx;
+                ne.ry = oe.ry;
             } else {
                 ne.rx = ne.x;
                 ne.ry = ne.y;
@@ -1591,8 +2043,18 @@ function connectSocket(callback) {
             visualEffects.push({ kind: 'ring', x: ev.x, y: ev.y, r: ev.r, color: '#38bdf8', life: 0.28, maxLife: 0.28 });
         } else if (ev.type === 'explosion') {
             visualEffects.push({ kind: 'blast', x: ev.x, y: ev.y, r: ev.r, life: 0.35, maxLife: 0.35 });
+        } else if (ev.type === 'amaterasu') {
+            visualEffects.push({ kind: 'amaterasu', x: ev.x, y: ev.y, r: ev.r, life: 0.42, maxLife: 0.42 });
+        } else if (ev.type === 'smash') {
+            visualEffects.push({ kind: 'smash', x: ev.x, y: ev.y, r: ev.r, life: 0.32, maxLife: 0.32 });
+        } else if (ev.type === 'heal') {
+            visualEffects.push({ kind: 'heal', x: ev.x, y: ev.y, r: ev.r, life: 0.45, maxLife: 0.45 });
         } else if (ev.type === 'lightning') {
             visualEffects.push({ kind: 'bolt', x1: ev.x1, y1: ev.y1, x2: ev.x2, y2: ev.y2, life: 0.22, maxLife: 0.22 });
+        } else if (ev.type === 'shadowStitch') {
+            visualEffects.push({ kind: 'shadowStitch', x1: ev.x1, y1: ev.y1, x2: ev.x2, y2: ev.y2, life: 0.28, maxLife: 0.28 });
+        } else if (ev.type === 'hiraishin') {
+            visualEffects.push({ kind: 'hiraishin', x1: ev.x1, y1: ev.y1, x2: ev.x2, y2: ev.y2, life: 0.25, maxLife: 0.25 });
         } else if (ev.type === 'poof') {
             for (let i = 0; i < 8; i++) {
                 const a = Math.random() * Math.PI * 2;
@@ -1661,10 +2123,9 @@ function connectSocket(callback) {
         document.getElementById('go-level').innerText = summary.level;
         document.getElementById('go-kills').innerText = summary.totalKills;
 
-        const charNames = { naruto: '鳴人', kakashi: '卡卡西', jiraiya: '自來也' };
         document.getElementById('go-scoreboard').innerHTML = summary.players
-            .map(p => `${p.name} (${charNames[p.charId]}) — 擊殺: <b style="color:#fbbf24;">${p.kills}</b>`)
-            .join('<br>');
+            .map(p => `${p.name} (${CHAR_DISPLAY_NAMES[p.charId] || p.charId}) — 擊殺: <b style="color:#fbbf24;">${p.kills}</b>`)
+            .join('<br>') + `<div style="margin-top:8px; color:#38bdf8;">累計總擊殺進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}</div>`;
 
         document.getElementById('btn-restart').style.display = isHost ? 'inline-block' : 'none';
     });
@@ -1722,19 +2183,24 @@ function updateOnlineHud() {
 
         const badges = [`<div class="w-badge">主忍術 x${me.wCount}</div>`];
         if (me.rasenLv > 0) badges.push(`<div class="w-badge">螺旋丸 LV.${me.rasenLv}</div>`);
-        if (me.raikiriLv > 0) badges.push(`<div class="w-badge">雷切 x${me.raikiriCnt}</div>`);
+        if (me.raikiriLv > 0) badges.push(`<div class="w-badge">雷刃 x${me.raikiriCnt}</div>`);
         if (me.lightLv > 0) badges.push(`<div class="w-badge">紫電 LV.${me.lightLv}</div>`);
         if (me.fireLv > 0) badges.push(`<div class="w-badge">大炎彈 LV.${me.fireLv}</div>`);
+        if (me.amatLv > 0) badges.push(`<div class="w-badge">天照 LV.${me.amatLv}</div>`);
+        if (me.smashLv > 0) badges.push(`<div class="w-badge">櫻花衝 LV.${me.smashLv}</div>`);
+        if (me.healLv > 0) badges.push(`<div class="w-badge">百豪 LV.${me.healLv}</div>`);
+        if (me.shadowLv > 0) badges.push(`<div class="w-badge">影模仿 LV.${me.shadowLv}</div>`);
+        if (me.stitchLv > 0) badges.push(`<div class="w-badge">影縫合 LV.${me.stitchLv}</div>`);
+        if (me.hiraiLv > 0) badges.push(`<div class="w-badge">飛雷神 LV.${me.hiraiLv}</div>`);
         if (me.clones > 0) badges.push(`<div class="w-badge">影分身 x${me.clones}</div>`);
         document.getElementById('weapon-badges').innerHTML = badges.join('');
     }
 
     const allies = worldState.players.filter(p => p.id !== myId);
     const allyBox = document.getElementById('teammates-hud');
-    const charLabel = { naruto: '鳴人', kakashi: '卡卡西', jiraiya: '自來也' };
     allyBox.innerHTML = allies.map(a => `
         <div class="ally-card ${a.downed ? 'downed' : ''}">
-            <div style="font-weight:bold; color:#fbbf24;">${a.name} (${charLabel[a.charId]})</div>
+            <div style="font-weight:bold; color:#fbbf24;">${a.name} (${CHAR_DISPLAY_NAMES[a.charId] || a.charId})</div>
             <div style="color:${a.downed ? '#f87171' : '#4ade80'}; margin-top:2px;">
                 ${a.downed ? `倒地救援中 ${Math.floor(a.revive * 100)}%` : `HP: ${Math.ceil(a.hp)} / ${a.maxHp}`}
             </div>
@@ -1744,7 +2210,7 @@ function updateOnlineHud() {
 
 /**
  * ============================================================================
- * 5. 內建單機模式備援引擎
+ * 5. 內建單機模式備援引擎 (完整支援 7 位角色)
  * ============================================================================
  */
 let soloState = null;
@@ -1758,11 +2224,16 @@ function startOfflineSolo() {
     damageTexts = [];
     visualEffects = [];
     particles = [];
+    document.getElementById('ping-badge').innerText = 'OFFLINE SOLO';
 
     const baseStats = {
-        naruto: { maxHp: 110, speed: 225, weapon: 'shuriken', cooldown: 0.95, damage: 20, count: 1 },
-        kakashi: { maxHp: 95, speed: 245, weapon: 'kunai', cooldown: 1.05, damage: 28, count: 1 },
-        jiraiya: { maxHp: 135, speed: 200, weapon: 'needle', cooldown: 1.35, damage: 16, count: 3 }
+        naruto: { maxHp: 110, speed: 225, regen: 0, weapon: 'shuriken', cooldown: 0.95, damage: 20, count: 1 },
+        kakashi: { maxHp: 95, speed: 245, regen: 0, weapon: 'kunai', cooldown: 1.05, damage: 28, count: 1 },
+        jiraiya: { maxHp: 135, speed: 200, regen: 0, weapon: 'needle', cooldown: 1.35, damage: 16, count: 3 },
+        sasuke: { maxHp: 100, speed: 240, regen: 0, weapon: 'chidori_senbon', cooldown: 0.92, damage: 24, count: 1 },
+        sakura: { maxHp: 130, speed: 215, regen: 1.5, weapon: 'cherry_kunai', cooldown: 1.15, damage: 30, count: 1 },
+        shikamaru: { maxHp: 105, speed: 220, regen: 0, weapon: 'trench_knife', cooldown: 1.10, damage: 22, count: 1 },
+        minato: { maxHp: 115, speed: 265, regen: 0, weapon: 'hiraishin_kunai', cooldown: 0.82, damage: 25, count: 2 }
     }[selectedChar];
 
     soloState = {
@@ -1778,11 +2249,13 @@ function startOfflineSolo() {
             name: document.getElementById('input-name').value.trim() || '單機忍者',
             charId: selectedChar,
             x: 0, y: 0, rx: 0, ry: 0,
+            spd: baseStats.speed,
             facing: 'right',
             moving: false,
             hp: baseStats.maxHp,
             maxHp: baseStats.maxHp,
             speed: baseStats.speed,
+            regen: baseStats.regen,
             pickupRange: 125,
             hitTimer: 0,
             downed: false,
@@ -1796,6 +2269,12 @@ function startOfflineSolo() {
             raikiriLv: 0, raikiriCnt: 2, raikiriDmg: 18, raikiriR: 95, raikiriSpd: 3.4,
             lightLv: 0, lightBolts: 2, lightDmg: 26, lightTimer: 0,
             fireLv: 0, fireDmg: 34, fireR: 85, fireTimer: 0,
+            amatLv: 0, amatCnt: 2, amatDmg: 28, amatR: 68, amatTimer: 0,
+            smashLv: 0, smashR: 135, smashDmg: 32, smashTimer: 0,
+            healLv: 0, healAmt: 14, healR: 185, healTimer: 0,
+            shadowLv: 0, shadowR: 135, shadowDmg: 11, shadowTimer: 0,
+            stitchLv: 0, stitchSpikes: 3, stitchDmg: 25, stitchTimer: 0,
+            hiraiLv: 0, hiraiStrikes: 3, hiraiDmg: 30, hiraiTimer: 0,
             clones: 0, cloneTimers: [0.4, 0.8]
         },
         enemies: [],
@@ -1816,6 +2295,7 @@ function stepSolo(dt) {
     const p = s.player;
     s.t += dt;
     if (p.hitTimer > 0) p.hitTimer = Math.max(0, p.hitTimer - dt);
+    if (p.regen > 0 && p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
 
     const { dx, dy } = getMoveVector();
     p.moving = (dx !== 0 || dy !== 0);
@@ -1838,13 +2318,14 @@ function stepSolo(dt) {
         if (nearest) {
             const ang = Math.atan2(nearest.y - p.y, nearest.x - p.x);
             p.facing = Math.cos(ang) >= 0 ? 'right' : 'left';
-            const step = p.charId === 'jiraiya' ? 0.14 : 0.17;
+            const step = p.charId === 'jiraiya' ? 0.14 : 0.16;
+            const projSpd = p.charId === 'minato' ? 820 : p.charId === 'sasuke' ? 760 : 690;
             for (let i = 0; i < p.wCount; i++) {
                 const a = ang + (i - (p.wCount - 1) / 2) * step;
                 s.projectiles.push({
                     id: s.nextId++, kind: p.wType, x: p.x, y: p.y,
-                    vx: Math.cos(a) * 690, vy: Math.sin(a) * 690, angle: a,
-                    damage: p.wDmg, radius: 9, life: 1.6
+                    vx: Math.cos(a) * projSpd, vy: Math.sin(a) * projSpd, angle: a,
+                    damage: p.wDmg, radius: 10, life: 1.6
                 });
             }
             playSfx('kunai');
@@ -1886,6 +2367,7 @@ function stepSolo(dt) {
                 if (Math.hypot(e.x - p.x, e.y - p.y) < p.rasenR + e.radius) {
                     soloDamageEnemy(e, p.rasenDmg, '#38bdf8');
                     e.slowTimer = 1.1;
+                    e.slowFactor = 0.48;
                 }
             }
         }
@@ -1899,11 +2381,8 @@ function stepSolo(dt) {
             const sy = p.y + Math.sin(ang) * p.raikiriR;
             for (const e of s.enemies) {
                 if (e.hitTimer > 0) continue;
-                if (Math.hypot(e.x - sx, e.y - sy) < 15 + e.radius) {
-                    soloDamageEnemy(e, p.raikiriDmg, '#7dd3fc');
-                    const kb = Math.atan2(e.y - sy, e.x - sx);
-                    e.vx = Math.cos(kb) * 320;
-                    e.vy = Math.sin(kb) * 320;
+                if (Math.hypot(e.x - sx, e.y - sy) < 16 + e.radius) {
+                    soloDamageEnemy(e, p.raikiriDmg, '#7dd3fc', 280);
                 }
             }
         }
@@ -1944,6 +2423,102 @@ function stepSolo(dt) {
         }
     }
 
+    if (p.amatLv > 0 && s.enemies.length > 0) {
+        p.amatTimer -= dt;
+        if (p.amatTimer <= 0) {
+            p.amatTimer = 1.6;
+            const targets = s.enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 430).slice(0, p.amatCnt);
+            if (targets.length > 0) {
+                playSfx('rasengan');
+                targets.forEach(t => {
+                    visualEffects.push({ kind: 'amaterasu', x: t.x, y: t.y, r: p.amatR, life: 0.42, maxLife: 0.42 });
+                    s.enemies.forEach(e => {
+                        if (Math.hypot(e.x - t.x, e.y - t.y) <= p.amatR + e.radius) {
+                            soloDamageEnemy(e, p.amatDmg, '#a855f7', 35);
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+    if (p.smashLv > 0) {
+        p.smashTimer -= dt;
+        if (p.smashTimer <= 0) {
+            p.smashTimer = 1.75;
+            visualEffects.push({ kind: 'smash', x: p.x, y: p.y, r: p.smashR, life: 0.32, maxLife: 0.32 });
+            playSfx('rasengan');
+            s.enemies.forEach(e => {
+                if (Math.hypot(e.x - p.x, e.y - p.y) <= p.smashR + e.radius) {
+                    soloDamageEnemy(e, p.smashDmg, '#f472b6', 380);
+                }
+            });
+        }
+    }
+
+    if (p.healLv > 0) {
+        p.healTimer -= dt;
+        if (p.healTimer <= 0) {
+            p.healTimer = 3.5;
+            visualEffects.push({ kind: 'heal', x: p.x, y: p.y, r: p.healR, life: 0.45, maxLife: 0.45 });
+            playSfx('gem');
+            p.hp = Math.min(p.maxHp, p.hp + p.healAmt);
+            damageTexts.push({ x: p.x, y: p.y - 45, text: `+${p.healAmt}`, color: '#4ade80', life: 0.85 });
+        }
+    }
+
+    if (p.shadowLv > 0) {
+        p.shadowTimer -= dt;
+        if (p.shadowTimer <= 0) {
+            p.shadowTimer = 0.85;
+            s.enemies.forEach(e => {
+                if (Math.hypot(e.x - p.x, e.y - p.y) <= p.shadowR + e.radius) {
+                    soloDamageEnemy(e, p.shadowDmg, '#94a3b8', 15);
+                    e.slowTimer = 1.2;
+                    e.slowFactor = 0.30;
+                }
+            });
+        }
+    }
+
+    if (p.stitchLv > 0 && s.enemies.length > 0) {
+        p.stitchTimer -= dt;
+        if (p.stitchTimer <= 0) {
+            p.stitchTimer = 1.55;
+            const targets = s.enemies
+                .filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 380)
+                .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))
+                .slice(0, p.stitchSpikes);
+            if (targets.length > 0) {
+                playSfx('hit');
+                targets.forEach(t => {
+                    visualEffects.push({ kind: 'shadowStitch', x1: p.x, y1: p.y + 18, x2: t.x, y2: t.y + 10, life: 0.28, maxLife: 0.28 });
+                    soloDamageEnemy(t, p.stitchDmg, '#cbd5e1', 50);
+                    t.slowTimer = 1.0;
+                    t.slowFactor = 0.35;
+                });
+            }
+        }
+    }
+
+    if (p.hiraiLv > 0 && s.enemies.length > 0) {
+        p.hiraiTimer -= dt;
+        if (p.hiraiTimer <= 0) {
+            p.hiraiTimer = 1.35;
+            const targets = s.enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 460).slice(0, p.hiraiStrikes);
+            if (targets.length > 0) {
+                playSfx('rasengan');
+                let prevX = p.x, prevY = p.y;
+                targets.forEach(t => {
+                    visualEffects.push({ kind: 'hiraishin', x1: prevX, y1: prevY, x2: t.x, y2: t.y, life: 0.25, maxLife: 0.25 });
+                    soloDamageEnemy(t, p.hiraiDmg, '#facc15', 60);
+                    prevX = t.x;
+                    prevY = t.y;
+                });
+            }
+        }
+    }
+
     s.spawnTimer -= dt;
     if (s.spawnTimer <= 0) {
         const spawnRate = Math.max(0.22, 0.95 - s.t / 280);
@@ -1966,7 +2541,7 @@ function stepSolo(dt) {
             s.enemies.push({
                 id: s.nextId++, type, x: ex, y: ey, rx: ex, ry: ey, vx: 0, vy: 0, facing: 'left',
                 hp: st.hp, maxHp: st.hp, speed: st.speed, damage: st.damage, radius: st.radius, xp: st.xp,
-                hitTimer: 0, slowTimer: 0
+                hitTimer: 0, slowTimer: 0, slowFactor: 0.48
             });
         }
         s.spawnTimer = spawnRate;
@@ -2004,7 +2579,7 @@ function stepSolo(dt) {
         if (e.hitTimer > 0) e.hitTimer = Math.max(0, e.hitTimer - dt);
         if (e.slowTimer > 0) e.slowTimer = Math.max(0, e.slowTimer - dt);
 
-        const spd = e.slowTimer > 0 ? e.speed * 0.48 : e.speed;
+        const spd = e.slowTimer > 0 ? e.speed * (e.slowFactor || 0.48) : e.speed;
         e.vx *= 0.88;
         e.vy *= 0.88;
         const ang = Math.atan2(p.y - e.y, p.x - e.x);
@@ -2032,7 +2607,7 @@ function stepSolo(dt) {
                 document.getElementById('go-time').innerText = `${mins}:${secs}`;
                 document.getElementById('go-level').innerText = s.lv;
                 document.getElementById('go-kills').innerText = s.kills;
-                document.getElementById('go-scoreboard').innerText = `${p.name} — 單機挑戰紀錄`;
+                document.getElementById('go-scoreboard').innerHTML = `${p.name} (${CHAR_DISPLAY_NAMES[p.charId]}) — 單機挑戰紀錄<br><span style="color:#38bdf8;">累計總擊殺進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}</span>`;
                 document.getElementById('btn-restart').style.display = 'inline-block';
                 return;
             }
@@ -2074,18 +2649,21 @@ function stepSolo(dt) {
     updateOnlineHud();
 }
 
-function soloDamageEnemy(e, amount, color) {
+function soloDamageEnemy(e, amount, color, kbForce = 70) {
     e.hp -= amount;
     e.hitTimer = 0.11;
     playSfx('hit');
     damageTexts.push({ x: e.x, y: e.y - e.radius - 8, text: Math.floor(amount), color, life: 0.75 });
-    const ang = Math.atan2(e.y - soloState.player.y, e.x - soloState.player.x);
-    const kb = e.type === 'elite' ? 0.3 : 1.0;
-    e.vx = Math.cos(ang) * 70 * kb;
-    e.vy = Math.sin(ang) * 70 * kb;
+    if (kbForce > 0) {
+        const ang = Math.atan2(e.y - soloState.player.y, e.x - soloState.player.x);
+        const kb = e.type === 'elite' ? 0.3 : 1.0;
+        e.vx = Math.cos(ang) * kbForce * kb;
+        e.vy = Math.sin(ang) * kbForce * kb;
+    }
 
     if (e.hp <= 0) {
         soloState.kills++;
+        addAccumulatedKills(1);
         soloState.gems.push({ id: soloState.nextId++, x: e.x, y: e.y, value: e.xp });
         for (let i = 0; i < 8; i++) {
             const a = Math.random() * Math.PI * 2;
@@ -2135,10 +2713,50 @@ function showSoloLevelUp() {
             { id: 'hp', title: '妙木山仙人體質', desc: '最大生命 +40 並回復 80 HP' },
             { id: 'speed', title: '蛤蟆跳躍步法', desc: '移動速度永久提升 15%' },
             { id: 'magnet', title: '仙術自然感知', desc: '寶石拾取範圍擴大 50%' }
+        ],
+        sasuke: [
+            { id: 'w_count', title: '千鳥千本齊射', desc: '千鳥千本每次額外發射 +1 根' },
+            { id: 'w_dmg', title: '草薙劍氣增幅', desc: '千鳥千本傷害提升 +14' },
+            { id: 'w_cd', title: '萬花筒動態洞察', desc: '主武器冷卻縮短 22%' },
+            { id: 'raikiri', title: '千鳥流・環繞雷刃', desc: '解鎖/增加 +1 道高壓雷刃環繞護身並擊退敵人' },
+            { id: 'amaterasu', title: '天照・不滅黑炎', desc: '解鎖/強化黑炎爆發，焚燒周圍敵群' },
+            { id: 'hp', title: '咒印生命力', desc: '最大生命 +25 並回復 50 HP' },
+            { id: 'speed', title: '雷遁瞬步', desc: '移動速度永久提升 15%' },
+            { id: 'magnet', title: '寫輪眼瞳力', desc: '寶石拾取範圍擴大 50%' }
+        ],
+        sakura: [
+            { id: 'w_count', title: '連環櫻花苦無', desc: '櫻花苦無每次額外投擲 +1 把' },
+            { id: 'w_dmg', title: '怪力查克拉集中', desc: '苦無與體術傷害提升 +16' },
+            { id: 'w_cd', title: '醫療忍者精準控制', desc: '主武器冷卻縮短 20%' },
+            { id: 'cherry_smash', title: '櫻花衝・怪力震擊', desc: '解鎖/擴大地面震擊波，重創並震飛周圍敵人' },
+            { id: 'byakugou', title: '百豪之印・掌仙術', desc: '解鎖/強化週期性治療光環回復自身生命' },
+            { id: 'hp', title: '百豪查克拉儲備', desc: '最大生命 +40 並回復 80 HP' },
+            { id: 'speed', title: '體術迴避步法', desc: '移動速度永久提升 15%' },
+            { id: 'magnet', title: '精細查克拉感知', desc: '寶石拾取範圍擴大 50%' }
+        ],
+        shikamaru: [
+            { id: 'w_count', title: '飛燕・雙重查克拉刀', desc: '查克拉刀每次額外投擲 +1 把' },
+            { id: 'w_dmg', title: '阿斯瑪之刃銳化', desc: '查克拉刀傷害提升 +13' },
+            { id: 'w_cd', title: '兩百智商戰術連攜', desc: '主武器冷卻縮短 22%' },
+            { id: 'shadow_bind', title: '影子模仿術・領域', desc: '解鎖/擴大腳下黑影領域，造成 70% 極強減速與持續傷害' },
+            { id: 'shadow_stitch', title: '影子縫合術', desc: '解鎖/增加黑影尖刺數量，精準貫穿多名敵人' },
+            { id: 'hp', title: '中忍戰術防護', desc: '最大生命 +30 並回復 60 HP' },
+            { id: 'speed', title: '戰術撤離步法', desc: '移動速度永久提升 15%' },
+            { id: 'magnet', title: '戰場全局掌控', desc: '寶石拾取範圍擴大 60%' }
+        ],
+        minato: [
+            { id: 'w_count', title: '飛雷神苦無陣', desc: '每次額外投擲 +1 把三叉飛雷神苦無' },
+            { id: 'w_dmg', title: '九尾陰之力灌注', desc: '飛雷神苦無傷害提升 +15' },
+            { id: 'w_cd', title: '黃色閃光神速', desc: '主武器冷卻縮短 24%' },
+            { id: 'hiraishin', title: '飛雷神・二段閃光斬', desc: '解鎖/強化金色閃電瞬殺，連續斬擊多名敵人' },
+            { id: 'rasengan', title: '螺旋丸・閃光領域', desc: '解鎖/擴大高速旋轉螺旋丸氣流（傷害＋減速）' },
+            { id: 'hp', title: '四代目火影護佑', desc: '最大生命 +30 並回復 65 HP' },
+            { id: 'speed', title: '時空間神速', desc: '移動速度再提升 15%' },
+            { id: 'magnet', title: '飛雷神印記回收', desc: '寶石拾取範圍擴大 60%' }
         ]
     };
 
-    const pool = SOLO_POOLS[p.charId].filter(u => !(u.id === 'clone' && p.clones >= 2));
+    const pool = (SOLO_POOLS[p.charId] || SOLO_POOLS.naruto).filter(u => !(u.id === 'clone' && p.clones >= 2));
     pool.sort(() => 0.5 - Math.random());
     const choices = pool.slice(0, 3);
 
@@ -2160,12 +2778,18 @@ function showSoloLevelUp() {
         card.appendChild(info);
         card.onclick = () => {
             if (c.id === 'w_count') p.wCount += (p.charId === 'jiraiya' ? 2 : 1);
-            else if (c.id === 'w_dmg') p.wDmg += 12;
+            else if (c.id === 'w_dmg') p.wDmg += 14;
             else if (c.id === 'w_cd') p.wCd *= 0.8;
             else if (c.id === 'rasengan') { p.rasenLv++; p.rasenR += 20; p.rasenDmg += 7; }
             else if (c.id === 'raikiri') { if (p.raikiriLv === 0) p.raikiriLv = 1; else { p.raikiriCnt++; p.raikiriDmg += 8; } }
             else if (c.id === 'lightning') { if (p.lightLv === 0) p.lightLv = 1; else { p.lightBolts++; p.lightDmg += 10; } }
             else if (c.id === 'fireball') { if (p.fireLv === 0) p.fireLv = 1; else { p.fireDmg += 16; p.fireR += 18; } }
+            else if (c.id === 'amaterasu') { if (p.amatLv === 0) p.amatLv = 1; else { p.amatCnt++; p.amatDmg += 12; p.amatR += 12; } }
+            else if (c.id === 'cherry_smash') { if (p.smashLv === 0) p.smashLv = 1; else { p.smashDmg += 15; p.smashR += 22; } }
+            else if (c.id === 'byakugou') { if (p.healLv === 0) p.healLv = 1; else { p.healAmt += 8; p.healR += 25; } }
+            else if (c.id === 'shadow_bind') { if (p.shadowLv === 0) p.shadowLv = 1; else { p.shadowR += 24; p.shadowDmg += 6; } }
+            else if (c.id === 'shadow_stitch') { if (p.stitchLv === 0) p.stitchLv = 1; else { p.stitchSpikes++; p.stitchDmg += 10; } }
+            else if (c.id === 'hiraishin') { if (p.hiraiLv === 0) p.hiraiLv = 1; else { p.hiraiStrikes++; p.hiraiDmg += 12; } }
             else if (c.id === 'clone') p.clones++;
             else if (c.id === 'hp') { p.maxHp += 30; p.hp = Math.min(p.maxHp, p.hp + 65); }
             else if (c.id === 'speed') p.speed *= 1.15;
@@ -2232,15 +2856,34 @@ function renderWorld(dt) {
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 35);
 
     if (mode === 'ONLINE') {
+        const { dx, dy } = getMoveVector();
         worldState.players.forEach(p => {
             if (p.rx === undefined) { p.rx = p.x; p.ry = p.y; }
-            p.rx += (p.x - p.rx) * Math.min(1, dt * 16);
-            p.ry += (p.y - p.ry) * Math.min(1, dt * 16);
+            if (p.id === myId) {
+                if (!p.downed && gameState === 'PLAYING' && (dx !== 0 || dy !== 0)) {
+                    p.moving = true;
+                    p.rx += dx * (p.spd || 225) * dt;
+                    p.ry += dy * (p.spd || 225) * dt;
+                    if (dx < -0.05) p.facing = 'left';
+                    if (dx > 0.05) p.facing = 'right';
+                } else {
+                    p.moving = false;
+                }
+            } else {
+                p.rx += (p.x - p.rx) * Math.min(1, dt * 18);
+                p.ry += (p.y - p.ry) * Math.min(1, dt * 18);
+            }
         });
+
         worldState.enemies.forEach(e => {
             if (e.rx === undefined) { e.rx = e.x; e.ry = e.y; }
-            e.rx += (e.x - e.rx) * Math.min(1, dt * 16);
-            e.ry += (e.y - e.ry) * Math.min(1, dt * 16);
+            e.rx += (e.x - e.rx) * Math.min(1, dt * 18);
+            e.ry += (e.y - e.ry) * Math.min(1, dt * 18);
+        });
+
+        worldState.projectiles.forEach(pr => {
+            pr.x += (pr.vx || 0) * dt;
+            pr.y += (pr.vy || 0) * dt;
         });
     }
 
@@ -2263,6 +2906,7 @@ function renderWorld(dt) {
         ctx.fillRect(camera.x - 32, camera.y - 32, canvas.width + 64, canvas.height + 64);
     }
 
+    // 查克拉經驗寶石
     for (const g of worldState.gems) {
         const bob = Math.sin(renderTime * 6 + g.id) * 2.5;
         const isBig = g.val >= 10;
@@ -2280,6 +2924,7 @@ function renderWorld(dt) {
         ctx.fillRect(Math.round(g.x - 2), Math.round(g.y + bob - 3), 3, 4);
     }
 
+    // Y-Sorting 深度排序渲染
     const renderList = [];
     worldState.players.forEach(p => {
         renderList.push({ kind: 'player', y: p.ry ?? p.y, data: p });
@@ -2306,6 +2951,7 @@ function renderWorld(dt) {
         else drawEnemyEntity(item.data);
     }
 
+    // 投射物渲染
     for (const pr of worldState.projectiles) {
         ctx.save();
         ctx.translate(pr.x, pr.y);
@@ -2325,6 +2971,37 @@ function renderWorld(dt) {
             ctx.fillRect(-10, -1, 20, 3);
             ctx.fillStyle = '#38bdf8';
             ctx.fillRect(6, -1, 5, 3);
+        } else if (pr.kind === 'chidori_senbon') {
+            ctx.rotate(pr.angle);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+            ctx.fillRect(-22, -3, 28, 6);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-10, -1, 24, 3);
+        } else if (pr.kind === 'cherry_kunai') {
+            ctx.rotate(pr.angle);
+            ctx.fillStyle = 'rgba(244, 114, 182, 0.4)';
+            ctx.fillRect(-24, -3, 22, 6);
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillRect(-5, -4, 18, 8);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-2, -2, 13, 3);
+        } else if (pr.kind === 'trench_knife') {
+            ctx.rotate(renderTime * 22);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(-12, -2, 24, 4);
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-4, -4, 8, 8);
+        } else if (pr.kind === 'hiraishin_kunai') {
+            ctx.rotate(pr.angle);
+            ctx.fillStyle = 'rgba(250, 204, 21, 0.45)';
+            ctx.fillRect(-32, -2, 30, 4);
+            // 三叉飛雷神苦無刃
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(-4, -5, 16, 10);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(2, -2, 14, 4);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(-10, -2, 6, 4);
         } else if (pr.kind === 'fireball') {
             ctx.fillStyle = 'rgba(234, 88, 12, 0.35)';
             ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
@@ -2346,6 +3023,7 @@ function renderWorld(dt) {
         ctx.restore();
     }
 
+    // 招式特效渲染
     for (let i = visualEffects.length - 1; i >= 0; i--) {
         const fx = visualEffects[i];
         fx.life -= dt;
@@ -2366,13 +3044,39 @@ function renderWorld(dt) {
             ctx.strokeStyle = `rgba(250, 204, 21, ${alpha})`;
             ctx.lineWidth = 4;
             ctx.stroke();
-        } else if (fx.kind === 'bolt') {
-            ctx.strokeStyle = `rgba(192, 132, 252, ${alpha})`;
+        } else if (fx.kind === 'amaterasu') {
+            ctx.fillStyle = `rgba(15, 10, 25, ${alpha * 0.72})`;
+            ctx.beginPath();
+            ctx.arc(fx.x, fx.y, fx.r * (1.1 - alpha * 0.2), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
             ctx.lineWidth = 3;
+            ctx.stroke();
+        } else if (fx.kind === 'smash') {
+            ctx.strokeStyle = `rgba(244, 114, 182, ${alpha})`;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(fx.x, fx.y, fx.r * (1.15 - alpha * 0.4), 0, Math.PI * 2);
+            ctx.stroke();
+        } else if (fx.kind === 'heal') {
+            ctx.fillStyle = `rgba(34, 197, 94, ${alpha * 0.22})`;
+            ctx.beginPath();
+            ctx.arc(fx.x, fx.y, fx.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = `rgba(74, 222, 128, ${alpha})`;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        } else if (fx.kind === 'bolt' || fx.kind === 'hiraishin' || fx.kind === 'shadowStitch') {
+            ctx.strokeStyle = fx.kind === 'hiraishin'
+                ? `rgba(250, 204, 21, ${alpha})`
+                : fx.kind === 'shadowStitch'
+                    ? `rgba(15, 23, 42, ${alpha})`
+                    : `rgba(192, 132, 252, ${alpha})`;
+            ctx.lineWidth = fx.kind === 'shadowStitch' ? 4 : 3;
             ctx.beginPath();
             ctx.moveTo(fx.x1, fx.y1);
-            const midX = (fx.x1 + fx.x2) / 2 + (Math.random() - 0.5) * 32;
-            const midY = (fx.y1 + fx.y2) / 2 + (Math.random() - 0.5) * 32;
+            const midX = (fx.x1 + fx.x2) / 2 + (Math.random() - 0.5) * 28;
+            const midY = (fx.y1 + fx.y2) / 2 + (Math.random() - 0.5) * 28;
             ctx.lineTo(midX, midY);
             ctx.lineTo(fx.x2, fx.y2);
             ctx.stroke();
@@ -2423,10 +3127,9 @@ function renderWorld(dt) {
         ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), 5, 3);
     }
 
-    // 繪製手機觸控浮動虛擬搖桿（Screen Space）
+    // 手機觸控浮動虛擬搖桿
     if (touchJoy.activeId !== null) {
         ctx.save();
-        // 外圈底座
         ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.72)';
         ctx.lineWidth = 3;
@@ -2435,7 +3138,6 @@ function renderWorld(dt) {
         ctx.fill();
         ctx.stroke();
 
-        // 內圈十字準星刻度
         ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -2445,7 +3147,6 @@ function renderWorld(dt) {
         ctx.lineTo(touchJoy.startX, touchJoy.startY + 10);
         ctx.stroke();
 
-        // 搖桿中心查克拉球頭
         ctx.fillStyle = 'rgba(251, 191, 36, 0.85)';
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
@@ -2460,6 +3161,20 @@ function renderWorld(dt) {
 function drawPlayerEntity(p) {
     const px = p.rx ?? p.x;
     const py = p.ry ?? p.y;
+
+    // 鹿丸影子模仿術黑影領域
+    if (!p.downed && p.shadowLv > 0) {
+        const r = p.shadowR || 135;
+        ctx.save();
+        ctx.fillStyle = 'rgba(10, 12, 20, 0.45)';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(px, py + 28, r, r * 0.72, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
 
     if (p.downed) {
         ctx.save();
@@ -2531,6 +3246,7 @@ function drawPlayerEntity(p) {
     ctx.fillStyle = '#22c55e';
     ctx.fillRect(Math.round(px - bw / 2), Math.round(py + 43), Math.round(bw * (p.hp / p.maxHp)), 5);
 
+    // 卡卡西雷切球 / 佐助千鳥流環繞雷刃
     if (!p.downed && p.raikiriLv > 0) {
         const time = renderTime * (p.raikiriSpd || 3.4);
         const cnt = p.raikiriCnt || 2;
@@ -2539,12 +3255,23 @@ function drawPlayerEntity(p) {
             const ang = time + ((Math.PI * 2) / cnt) * i;
             const sx = px + Math.cos(ang) * rad;
             const sy = py + Math.sin(ang) * rad;
-            ctx.fillStyle = '#0284c7';
-            ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#7dd3fc';
-            ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(Math.round(sx - 3), Math.round(sy - 3), 5, 5);
+            if (p.charId === 'sasuke') {
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(ang + Math.PI / 2);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(-14, -3, 28, 6);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-10, -1, 20, 2);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = '#0284c7';
+                ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#7dd3fc';
+                ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(Math.round(sx - 3), Math.round(sy - 3), 5, 5);
+            }
         }
     }
 }
@@ -2583,7 +3310,7 @@ function drawEnemyEntity(e) {
     ctx.drawImage(img, Math.round(ex - img.width / 2), Math.round(ey - img.height / 2));
 
     if (e.slow) {
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.ellipse(ex, footY, 22, 8, 0, 0, Math.PI * 2);
@@ -2606,6 +3333,7 @@ function mainLoop(now) {
     lastLoopTime = now;
 
     if (gameState === 'PLAYING') {
+        if (mode === 'ONLINE') sendOnlineInput();
         if (mode === 'SOLO') stepSolo(dt);
         renderWorld(dt);
     } else if (gameState === 'START') {
