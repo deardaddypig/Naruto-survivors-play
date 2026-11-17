@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NARUTO SURVIVORS 火滾忍者生存戰 </title>
+    <title>NARUTO SURVIVORS 火滾忍者生存戰</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         * {
@@ -195,10 +195,10 @@
         }
         .ally-card {
             background: rgba(15, 23, 42, 0.85);
-            border: 2px solid #64748b;
+            border: 2px solid #38bdf8;
             padding: 5px 10px;
             font-size: 12px;
-            min-width: 165px;
+            min-width: 175px;
             box-shadow: 3px 3px 0 #000;
         }
         .ally-card.downed {
@@ -228,12 +228,25 @@
             margin-top: 2px;
         }
 
+        /* 右上角控制與資訊列 (擊殺 / 延遲 / 遠近視野 / 音效 / PAUSE) */
         #stats-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .stats-top-row {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 14px;
-            font-weight: bold;
+        }
+        .hud-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
         }
         .stat-item span {
             color: #fbbf24;
@@ -242,17 +255,33 @@
             font-size: 11px;
             color: #4ade80;
         }
-        #btn-sfx {
+        .hud-ctrl-btn {
             pointer-events: auto;
             background: #1e293b;
             color: #e2e8f0;
             border: 2px solid #94a3b8;
             padding: 4px 8px;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 2px 2px 0 #000;
+        }
+        .hud-ctrl-btn:hover {
+            background: #334155;
+            border-color: #fff;
+        }
+        .hud-ctrl-btn.zoom-wide {
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+        .hud-ctrl-btn.pause-btn {
+            background: #b91c1c;
+            border-color: #fbbf24;
+            color: #fff;
+        }
+        .hud-ctrl-btn.pause-btn:hover {
+            background: #dc2626;
         }
 
         /* 彈出視窗 */
@@ -303,7 +332,6 @@
             margin: 0 0 8px;
         }
 
-        /* 7 位角色選擇網格 */
         .char-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -515,7 +543,6 @@
             color: #cbd5e1;
         }
 
-        /* Game Over 摘要與雙重排名榜樣式 */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -615,38 +642,40 @@
                 top: 18px;
                 left: 8px;
                 right: 8px;
-                gap: 6px;
+                gap: 5px;
             }
             .retro-panel {
-                padding: 5px 8px;
+                padding: 5px 7px;
                 border-width: 2px;
             }
             #portrait-canvas {
-                width: 42px;
-                height: 42px;
+                width: 40px;
+                height: 40px;
             }
             .bars-col {
-                min-width: 120px;
+                min-width: 112px;
                 gap: 3px;
             }
             .name-row {
-                font-size: 11px;
+                font-size: 10px;
             }
             #timer-panel {
-                min-width: 96px;
+                min-width: 86px;
             }
             #ui-time {
-                font-size: 18px;
+                font-size: 16px;
                 letter-spacing: 1px;
             }
             #wave-tag {
                 font-size: 9px;
             }
             #stats-panel {
-                font-size: 12px;
+                font-size: 11px;
                 gap: 4px;
-                flex-direction: column;
-                align-items: flex-end;
+            }
+            .hud-ctrl-btn {
+                padding: 3px 6px;
+                font-size: 10px;
             }
             #teammates-hud {
                 top: 96px;
@@ -674,7 +703,7 @@
     <div id="ui-layer">
         <div id="xp-container">
             <div id="xp-bar"></div>
-            <div id="xp-label">TEAM CHAKRA EXP</div>
+            <div id="xp-label">CHAKRA EXP</div>
         </div>
 
         <div id="hud-header">
@@ -699,19 +728,36 @@
             </div>
 
             <div id="stats-panel" class="retro-panel">
-                <div class="stat-item">擊破: <span id="ui-kills">0</span></div>
-                <div id="ping-badge">PING: --</div>
-                <button id="btn-sfx" onclick="toggleSfx()">SFX: ON</button>
+                <div class="stats-top-row">
+                    <div class="stat-item">擊破: <span id="ui-kills">0</span></div>
+                    <div id="ping-badge">PING: --</div>
+                </div>
+                <div class="hud-btn-group">
+                    <button id="btn-zoom" class="hud-ctrl-btn" onclick="toggleCameraZoom()">視野: 近</button>
+                    <button id="btn-sfx" class="hud-ctrl-btn" onclick="toggleSfx()">SFX: ON</button>
+                    <button id="btn-pause" class="hud-ctrl-btn pause-btn" onclick="togglePauseGame()">PAUSE</button>
+                </div>
             </div>
         </div>
 
-        <!-- 連線隊友即時血量與救援狀態 -->
+        <!-- 連線隊友即時血量與距離 -->
         <div id="teammates-hud"></div>
+    </div>
+
+    <!-- 暫停選單 (PAUSE MODAL) -->
+    <div id="menu-pause" class="modal" style="display:none; max-width:440px;">
+        <div class="badge-sub" style="background:#0284c7;">GAME PAUSED</div>
+        <h2>遊戲暫停中</h2>
+        <p id="pause-by-msg" style="color:#cbd5e1; font-size:13px; margin:6px 0 16px;">暫停休息一下，隨時可繼續戰鬥</p>
+        <div class="coop-actions">
+            <button class="action-btn" onclick="togglePauseGame()">繼續遊戲 (RESUME)</button>
+            <button class="action-btn gray" onclick="returnToMainMenu()">返回主頁</button>
+        </div>
     </div>
 
     <!-- 主選單與 3 人連線大廳 -->
     <div id="menu-start" class="modal">
-        <div class="badge-sub">KONOHA 3-PLAYER ONLINE CO-OP</div>
+        <div class="badge-sub">3-PLAYER ONLINE CO-OP</div>
         <h1>NARUTO SURVIVORS</h1>
         <p style="color:#94a3b8; margin:0 0 6px; font-size:12px;">
             支援電腦 <b>WASD / 方向鍵</b> 與 手機 <b>單指滑動方向盤</b> • 累計殺敵: <b id="total-kills-display" style="color:#fbbf24;">0</b>
@@ -779,7 +825,7 @@
             <button class="action-btn" onclick="createOnlineRoom()">建立 3 人房間</button>
             <input type="tel" id="input-room-code" class="retro-input" style="width:105px; text-align:center;" maxlength="4" placeholder="4位房號">
             <button class="action-btn blue" onclick="joinOnlineRoom()">輸入房號加入</button>
-            <button class="action-btn gray" onclick="startOfflineSolo()">單機模式</button>
+            <button class="action-btn green" onclick="startOfflineSolo()">單機模式</button>
         </div>
 
         <div id="lobby-error" style="color:#f87171; font-size:13px; margin-top:8px; font-weight:bold;"></div>
@@ -796,7 +842,7 @@
 
     <!-- 升級三選一畫面 -->
     <div id="menu-levelup" class="modal" style="display:none;">
-        <div class="badge-sub" style="background:#0284c7;">TEAM CHAKRA AWAKENING</div>
+        <div class="badge-sub" style="background:#0284c7;">CHAKRA AWAKENING</div>
         <h2 id="levelup-title">LEVEL UP! 忍術覺醒</h2>
         <p id="levelup-wait-msg" style="color:#cbd5e1; margin:0; font-size:13px;">選擇一項忍術或體術強化：</p>
         <div id="upgrade-options"></div>
@@ -830,11 +876,11 @@
             <div id="go-match-ranking"></div>
         </div>
 
-        <!-- 2. 歷代最高防衛紀錄 Top 5 -->
+        <!-- 2. 全服所有玩家英雄榜 (SERVER GLOBAL TOP 10) -->
         <div class="ranking-section">
             <div class="ranking-header">
-                <span>📜 木葉歷代防衛英雄榜 (TOP 5)</span>
-                <span style="font-size:11px; color:#94a3b8;">按存活時間與擊殺排名</span>
+                <span>🌍 全服所有玩家防衛英雄榜 (TOP 10)</span>
+                <span style="font-size:11px; color:#94a3b8;">全體玩家即時同步排名</span>
             </div>
             <div id="go-history-ranking"></div>
         </div>
@@ -854,6 +900,8 @@ const LEADERBOARD_STORAGE_KEY = 'naruto_survivors_top5_v1';
 
 let accumulatedKills = parseInt(localStorage.getItem('naruto_coop_total_kills') || '0', 10) || 0;
 let lastSyncedOnlineKills = 0;
+let serverGlobalLeaderboard = [];
+let lastRecordedEntryId = null;
 
 function isMinatoUnlocked() {
     return accumulatedKills >= MINATO_UNLOCK_KILLS;
@@ -869,8 +917,8 @@ function addAccumulatedKills(delta) {
     if (!wasUnlocked && isMinatoUnlocked()) {
         playSfx('levelup');
         damageTexts.push({
-            x: camera.x + canvas.width / 2,
-            y: camera.y + canvas.height / 2 - 60,
+            x: camera.x,
+            y: camera.y - 60,
             text: '★ 隱藏角色「四代目・波風水門」已解鎖！ ★',
             color: '#facc15',
             life: 3.0
@@ -1743,7 +1791,7 @@ function createGroundPattern(ctx) {
 
 /**
  * ============================================================================
- * 4. 排名榜記錄與顯示系統 (本局 MVP 排名 + 歷代 TOP 5 英雄榜)
+ * 4. 全服所有玩家排名榜記錄與渲染系統
  * ============================================================================
  */
 function formatTimeStr(sec) {
@@ -1752,7 +1800,7 @@ function formatTimeStr(sec) {
     return `${mins}:${secs}`;
 }
 
-function getHistoryLeaderboard() {
+function getFallbackLocalLeaderboard() {
     try {
         const raw = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
         const list = raw ? JSON.parse(raw) : [];
@@ -1762,13 +1810,69 @@ function getHistoryLeaderboard() {
     }
 }
 
+function renderGlobalLeaderboardUI(list, highlightEntryId = null) {
+    const histBox = document.getElementById('go-history-ranking');
+    if (!histBox) return;
+    histBox.innerHTML = '';
+
+    if (!list || list.length === 0) {
+        histBox.innerHTML = '<div style="color:#94a3b8; font-size:12px; padding:6px;">暫無紀錄，成為第一位登上榜單的忍者！</div>';
+        return;
+    }
+
+    list.forEach((rec, idx) => {
+        const isNew = highlightEntryId && rec.entryId === highlightEntryId;
+        const row = document.createElement('div');
+        row.className = `rank-row ${idx === 0 ? 'rank-1' : ''}`;
+
+        const left = document.createElement('div');
+        left.className = 'rank-left';
+
+        const rankNum = document.createElement('span');
+        rankNum.style.fontWeight = 'bold';
+        rankNum.style.minWidth = '38px';
+        rankNum.style.color = idx === 0 ? '#fbbf24' : '#94a3b8';
+        rankNum.innerText = `NO.${idx + 1}`;
+
+        const av = document.createElement('canvas');
+        av.className = 'rank-avatar';
+        av.width = 30;
+        av.height = 30;
+        drawCharMiniPortrait(av, rec.charId);
+
+        const displayTitle = rec.teamNames || rec.name || '木葉忍者';
+        const info = document.createElement('div');
+        info.innerHTML = `
+            <div style="font-weight:bold; color:#fff;">
+                ${displayTitle} <span style="color:#38bdf8; font-size:11px;">[${rec.modeLabel || '小隊'}]</span>
+                ${isNew ? '<span class="new-rec-tag">NEW!</span>' : ''}
+            </div>
+            <div style="font-size:11px; color:#94a3b8;">MVP: ${CHAR_DISPLAY_NAMES[rec.charId] || rec.charId} • LV.${rec.level}</div>
+        `;
+
+        left.appendChild(rankNum);
+        left.appendChild(av);
+        left.appendChild(info);
+
+        const right = document.createElement('div');
+        right.className = 'rank-right';
+        right.innerHTML = `
+            <div style="color:#4ade80;">存活 ${formatTimeStr(rec.time)}</div>
+            <div style="font-size:11px; color:#fbbf24;">全隊 ${rec.kills} 擊殺</div>
+        `;
+
+        row.appendChild(left);
+        row.appendChild(right);
+        histBox.appendChild(row);
+    });
+}
+
 function saveAndRenderLeaderboards(summary) {
     const minsSecs = formatTimeStr(summary.time);
     document.getElementById('go-time').innerText = minsSecs;
     document.getElementById('go-level').innerText = summary.level;
     document.getElementById('go-kills').innerText = summary.totalKills;
 
-    // 隱藏角色解鎖提示
     const hintEl = document.getElementById('go-unlock-hint');
     if (isMinatoUnlocked()) {
         hintEl.innerText = '★ 四代目水門已解鎖';
@@ -1778,7 +1882,7 @@ function saveAndRenderLeaderboards(summary) {
         hintEl.style.color = '#fbbf24';
     }
 
-    // 1. 渲染「本局忍者擊殺排名榜」
+    // 1. 本局忍者擊殺排名榜
     const sortedPlayers = [...summary.players].sort((a, b) => b.kills - a.kills);
     const totalMatchKills = Math.max(1, summary.totalKills);
     const matchBox = document.getElementById('go-match-ranking');
@@ -1836,79 +1940,42 @@ function saveAndRenderLeaderboards(summary) {
         matchBox.appendChild(row);
     });
 
-    // 2. 更新並渲染「木葉歷代防衛英雄榜 (TOP 5)」
-    const me = sortedPlayers.find(p => p.id === myId) || sortedPlayers[0];
-    const isCoop = sortedPlayers.length > 1;
-    const entryId = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const newEntry = {
-        entryId,
-        name: me ? me.name : '木葉忍者',
-        charId: me ? me.charId : selectedChar,
-        modeLabel: isCoop ? `${sortedPlayers.length}人小隊` : '單機挑戰',
-        time: Math.floor(summary.time),
-        level: summary.level,
-        kills: summary.totalKills
-    };
+    // 2. 全服所有玩家英雄榜
+    if (summary.globalLeaderboard && Array.isArray(summary.globalLeaderboard)) {
+        serverGlobalLeaderboard = summary.globalLeaderboard;
+        lastRecordedEntryId = summary.entryId || null;
+        renderGlobalLeaderboardUI(serverGlobalLeaderboard, lastRecordedEntryId);
+    } else {
+        // 單機模式：若伺服器已連線則上傳同步全服榜單，同時本地備份
+        const me = sortedPlayers[0];
+        const entryId = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        lastRecordedEntryId = entryId;
+        const newEntry = {
+            entryId,
+            name: me ? me.name : '木葉忍者',
+            charId: me ? me.charId : selectedChar,
+            teamNames: me ? me.name : '木葉忍者',
+            modeLabel: '單機挑戰',
+            time: Math.floor(summary.time),
+            level: summary.level,
+            kills: summary.totalKills
+        };
 
-    const history = getHistoryLeaderboard();
-    history.push(newEntry);
-    // 優先比較存活秒數，其次比較總擊殺數
-    history.sort((a, b) => (b.time - a.time) || (b.kills - a.kills));
-    const top5 = history.slice(0, 5);
-    localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(top5));
+        if (socket && socket.connected) {
+            socket.emit('submitSoloScore', newEntry);
+        }
 
-    const histBox = document.getElementById('go-history-ranking');
-    histBox.innerHTML = '';
-
-    top5.forEach((rec, idx) => {
-        const isNew = rec.entryId === entryId;
-        const row = document.createElement('div');
-        row.className = `rank-row ${idx === 0 ? 'rank-1' : ''}`;
-
-        const left = document.createElement('div');
-        left.className = 'rank-left';
-
-        const rankNum = document.createElement('span');
-        rankNum.style.fontWeight = 'bold';
-        rankNum.style.minWidth = '34px';
-        rankNum.style.color = idx === 0 ? '#fbbf24' : '#94a3b8';
-        rankNum.innerText = `NO.${idx + 1}`;
-
-        const av = document.createElement('canvas');
-        av.className = 'rank-avatar';
-        av.width = 30;
-        av.height = 30;
-        drawCharMiniPortrait(av, rec.charId);
-
-        const info = document.createElement('div');
-        info.innerHTML = `
-            <div style="font-weight:bold; color:#fff;">
-                ${rec.name} <span style="color:#38bdf8; font-size:11px;">[${rec.modeLabel}]</span>
-                ${isNew ? '<span class="new-rec-tag">NEW!</span>' : ''}
-            </div>
-            <div style="font-size:11px; color:#94a3b8;">${CHAR_DISPLAY_NAMES[rec.charId] || rec.charId} • LV.${rec.level}</div>
-        `;
-
-        left.appendChild(rankNum);
-        left.appendChild(av);
-        left.appendChild(info);
-
-        const right = document.createElement('div');
-        right.className = 'rank-right';
-        right.innerHTML = `
-            <div style="color:#4ade80;">存活 ${formatTimeStr(rec.time)}</div>
-            <div style="font-size:11px; color:#fbbf24;">${rec.kills} 擊殺</div>
-        `;
-
-        row.appendChild(left);
-        row.appendChild(right);
-        histBox.appendChild(row);
-    });
+        const merged = [...serverGlobalLeaderboard, ...getFallbackLocalLeaderboard(), newEntry];
+        merged.sort((a, b) => (b.time - a.time) || (b.kills - a.kills));
+        const top10 = merged.slice(0, 10);
+        localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(top10));
+        renderGlobalLeaderboardUI(top10, entryId);
+    }
 }
 
 /**
  * ============================================================================
- * 5. 連線與遊戲狀態管理 (返回主頁重新選角 / 連線 + 手機觸控搖桿)
+ * 5. 鏡頭遠近切換、PAUSE 暫停控制、連線與輸入狀態管理
  * ============================================================================
  */
 const canvas = document.getElementById('gameCanvas');
@@ -1930,6 +1997,40 @@ let isHost = false;
 let currentRoomCode = '';
 let pendingAction = null;
 let currentPing = 0;
+
+// 鏡頭視野缩放（1.0 = 近畫面，0.68 = 遠畫面）
+let isFarCamera = false;
+let cameraZoom = 1.0;
+let targetCameraZoom = 1.0;
+
+function toggleCameraZoom() {
+    isFarCamera = !isFarCamera;
+    targetCameraZoom = isFarCamera ? 0.68 : 1.0;
+    const btn = document.getElementById('btn-zoom');
+    if (btn) {
+        btn.innerText = isFarCamera ? '視野: 遠' : '視野: 近';
+        btn.classList.toggle('zoom-wide', isFarCamera);
+    }
+}
+
+// PAUSE 暫停切換（同時支援單機與多人連線）
+function togglePauseGame() {
+    if (gameState !== 'PLAYING' && gameState !== 'PAUSED') return;
+
+    if (mode === 'SOLO') {
+        if (gameState === 'PLAYING') {
+            gameState = 'PAUSED';
+            resetAllInputs();
+            document.getElementById('pause-by-msg').innerText = '單機任務暫停中，按繼續遊戲恢復戰鬥';
+            document.getElementById('menu-pause').style.display = 'block';
+        } else {
+            document.getElementById('menu-pause').style.display = 'none';
+            gameState = 'PLAYING';
+        }
+    } else if (mode === 'ONLINE' && socket && socket.connected) {
+        socket.emit('togglePause');
+    }
+}
 
 let keys = {};
 let lastSentDx = 0;
@@ -2059,6 +2160,15 @@ let visualEffects = [];
 let particles = [];
 let ambientLeaves = [];
 
+// HUD DOM 快取，避免高頻率重建 DOM 造成畫面微卡頓
+let hudCache = {
+    timeStr: '',
+    waveStr: '',
+    hpStr: '',
+    badgesHtml: '',
+    alliesHtml: ''
+};
+
 const savedName = localStorage.getItem('naruto_coop_name') || '';
 if (savedName) document.getElementById('input-name').value = savedName;
 
@@ -2152,6 +2262,15 @@ function connectSocket(callback) {
         statusEl.style.color = '#fbbf24';
     });
 
+    socket.on('globalLeaderboardUpdate', (list) => {
+        if (Array.isArray(list)) {
+            serverGlobalLeaderboard = list;
+            if (gameState === 'GAMEOVER') {
+                renderGlobalLeaderboardUI(serverGlobalLeaderboard, lastRecordedEntryId);
+            }
+        }
+    });
+
     socket.on('roomError', (msg) => {
         errEl.innerText = msg;
     });
@@ -2189,6 +2308,7 @@ function connectSocket(callback) {
         mode = 'ONLINE';
         gameState = 'PLAYING';
         lastSyncedOnlineKills = 0;
+        hudCache = { timeStr: '', waveStr: '', hpStr: '', badgesHtml: '', alliesHtml: '' };
         resetAllInputs();
         damageTexts = [];
         visualEffects = [];
@@ -2196,8 +2316,25 @@ function connectSocket(callback) {
         document.getElementById('menu-start').style.display = 'none';
         document.getElementById('menu-gameover').style.display = 'none';
         document.getElementById('menu-levelup').style.display = 'none';
+        document.getElementById('menu-pause').style.display = 'none';
         document.getElementById('ui-layer').style.display = 'block';
         updateHudPortrait(selectedChar);
+    });
+
+    socket.on('gamePaused', ({ pausedBy }) => {
+        if (gameState === 'PLAYING') {
+            gameState = 'PAUSED';
+            resetAllInputs();
+            document.getElementById('pause-by-msg').innerText = `由隊友「${pausedBy}」按下了暫停，按繼續遊戲恢復全隊戰鬥`;
+            document.getElementById('menu-pause').style.display = 'block';
+        }
+    });
+
+    socket.on('gameResumed', () => {
+        document.getElementById('menu-pause').style.display = 'none';
+        if (gameState === 'PAUSED') {
+            gameState = 'PLAYING';
+        }
     });
 
     socket.on('state', (snap) => {
@@ -2213,15 +2350,16 @@ function connectSocket(callback) {
                 np.rx = np.x;
                 np.ry = np.y;
             } else if (np.id === myId) {
+                // 本地玩家採用平滑柔和校正，避免與 0 延遲本地移動互相拉扯
                 np.rx = op.rx;
                 np.ry = op.ry;
                 const drift = Math.hypot(np.x - np.rx, np.y - np.ry);
-                if (np.downed || drift > 180) {
+                if (np.downed || drift > 220) {
                     np.rx = np.x;
                     np.ry = np.y;
-                } else if (drift > 28) {
-                    np.rx += (np.x - np.rx) * 0.22;
-                    np.ry += (np.y - np.ry) * 0.22;
+                } else if (drift > 45) {
+                    np.rx += (np.x - np.rx) * 0.14;
+                    np.ry += (np.y - np.ry) * 0.14;
                 }
             } else {
                 np.rx = op.rx;
@@ -2291,6 +2429,7 @@ function connectSocket(callback) {
         gameState = 'LEVELUP';
         resetAllInputs();
         playSfx('levelup');
+        document.getElementById('menu-pause').style.display = 'none';
 
         document.getElementById('levelup-title').innerText = `TEAM LV.${level} 忍術覺醒！`;
         const container = document.getElementById('upgrade-options');
@@ -2326,6 +2465,7 @@ function connectSocket(callback) {
 
     socket.on('resumeGame', () => {
         document.getElementById('menu-levelup').style.display = 'none';
+        document.getElementById('menu-pause').style.display = 'none';
         gameState = 'PLAYING';
     });
 
@@ -2334,6 +2474,7 @@ function connectSocket(callback) {
         resetAllInputs();
         document.getElementById('ui-layer').style.display = 'none';
         document.getElementById('menu-levelup').style.display = 'none';
+        document.getElementById('menu-pause').style.display = 'none';
         document.getElementById('menu-gameover').style.display = 'block';
         saveAndRenderLeaderboards(summary);
     });
@@ -2364,9 +2505,6 @@ function hostStartGame() {
     if (socket && isHost) socket.emit('startGame');
 }
 
-/**
- * 返回主選單：讓玩家重新選角、開啟新房間、加入其他房號或切換單機模式
- */
 function returnToMainMenu() {
     resetAllInputs();
 
@@ -2382,6 +2520,7 @@ function returnToMainMenu() {
 
     document.getElementById('menu-gameover').style.display = 'none';
     document.getElementById('menu-levelup').style.display = 'none';
+    document.getElementById('menu-pause').style.display = 'none';
     document.getElementById('ui-layer').style.display = 'none';
 
     document.getElementById('lobby-box').style.display = 'none';
@@ -2398,15 +2537,28 @@ function updateOnlineHud() {
     document.getElementById('ui-level').innerText = `LV.${worldState.lv}`;
     document.getElementById('ui-kills').innerText = worldState.kills;
 
-    document.getElementById('ui-time').innerText = formatTimeStr(worldState.t);
+    const timeStr = formatTimeStr(worldState.t);
+    if (timeStr !== hudCache.timeStr) {
+        hudCache.timeStr = timeStr;
+        document.getElementById('ui-time').innerText = timeStr;
+    }
+
     const wave = Math.floor(worldState.t / 30) + 1;
-    document.getElementById('wave-tag').innerText = `木葉防衛 • 第 ${wave} 波`;
+    const waveStr = `木葉防衛 • 第 ${wave} 波`;
+    if (waveStr !== hudCache.waveStr) {
+        hudCache.waveStr = waveStr;
+        document.getElementById('wave-tag').innerText = waveStr;
+    }
 
     const me = worldState.players.find(p => p.id === myId) || worldState.players[0];
     if (me) {
         const hpPct = Math.max(0, (me.hp / me.maxHp) * 100);
         document.getElementById('hud-hp-fill').style.width = `${hpPct}%`;
-        document.getElementById('hud-hp-text').innerText = me.downed ? '倒地！等待隊友救援' : `${Math.ceil(me.hp)} / ${me.maxHp}`;
+        const hpStr = me.downed ? '倒地！等待隊友救援' : `${Math.ceil(me.hp)} / ${me.maxHp}`;
+        if (hpStr !== hudCache.hpStr) {
+            hudCache.hpStr = hpStr;
+            document.getElementById('hud-hp-text').innerText = hpStr;
+        }
 
         const badges = [`<div class="w-badge">主忍術 x${me.wCount}</div>`];
         if (me.rasenLv > 0) badges.push(`<div class="w-badge">螺旋丸 LV.${me.rasenLv}</div>`);
@@ -2420,19 +2572,35 @@ function updateOnlineHud() {
         if (me.stitchLv > 0) badges.push(`<div class="w-badge">影縫合 LV.${me.stitchLv}</div>`);
         if (me.hiraiLv > 0) badges.push(`<div class="w-badge">飛雷神 LV.${me.hiraiLv}</div>`);
         if (me.clones > 0) badges.push(`<div class="w-badge">影分身 x${me.clones}</div>`);
-        document.getElementById('weapon-badges').innerHTML = badges.join('');
+
+        const badgesHtml = badges.join('');
+        if (badgesHtml !== hudCache.badgesHtml) {
+            hudCache.badgesHtml = badgesHtml;
+            document.getElementById('weapon-badges').innerHTML = badgesHtml;
+        }
     }
 
     const allies = worldState.players.filter(p => p.id !== myId);
-    const allyBox = document.getElementById('teammates-hud');
-    allyBox.innerHTML = allies.map(a => `
-        <div class="ally-card ${a.downed ? 'downed' : ''}">
-            <div style="font-weight:bold; color:#fbbf24;">${a.name} (${CHAR_DISPLAY_NAMES[a.charId] || a.charId})</div>
-            <div style="color:${a.downed ? '#f87171' : '#4ade80'}; margin-top:2px;">
-                ${a.downed ? `倒地救援中 ${Math.floor(a.revive * 100)}%` : `HP: ${Math.ceil(a.hp)} / ${a.maxHp}`}
+    const alliesHtml = allies.map(a => {
+        let distText = '';
+        if (me) {
+            const distMeters = Math.round(Math.hypot((a.rx ?? a.x) - (me.rx ?? me.x), (a.ry ?? a.y) - (me.ry ?? me.y)) / 25);
+            distText = ` • ${distMeters}m`;
+        }
+        return `
+            <div class="ally-card ${a.downed ? 'downed' : ''}">
+                <div style="font-weight:bold; color:#fbbf24;">${a.name} (${CHAR_DISPLAY_NAMES[a.charId] || a.charId})</div>
+                <div style="color:${a.downed ? '#f87171' : '#4ade80'}; margin-top:2px;">
+                    ${a.downed ? `倒地救援中 ${Math.floor(a.revive * 100)}%${distText}` : `HP: ${Math.ceil(a.hp)}/${a.maxHp}${distText}`}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
+
+    if (alliesHtml !== hudCache.alliesHtml) {
+        hudCache.alliesHtml = alliesHtml;
+        document.getElementById('teammates-hud').innerHTML = alliesHtml;
+    }
 }
 
 /**
@@ -2447,6 +2615,7 @@ function startOfflineSolo() {
     mode = 'SOLO';
     isHost = true;
     myId = 'local';
+    hudCache = { timeStr: '', waveStr: '', hpStr: '', badgesHtml: '', alliesHtml: '' };
     resetAllInputs();
     damageTexts = [];
     visualEffects = [];
@@ -2512,6 +2681,7 @@ function startOfflineSolo() {
     document.getElementById('menu-start').style.display = 'none';
     document.getElementById('menu-gameover').style.display = 'none';
     document.getElementById('menu-levelup').style.display = 'none';
+    document.getElementById('menu-pause').style.display = 'none';
     document.getElementById('ui-layer').style.display = 'block';
     updateHudPortrait(selectedChar);
     gameState = 'PLAYING';
@@ -2751,9 +2921,10 @@ function stepSolo(dt) {
         const spawnRate = Math.max(0.22, 0.95 - s.t / 280);
         const spawnCount = Math.floor(1 + s.t / 45);
         const hpMult = 1 + s.t / 110;
+        const viewDiagonal = Math.hypot(canvas.width / 2, canvas.height / 2) / 0.68;
         for (let i = 0; i < spawnCount; i++) {
             const ang = Math.random() * Math.PI * 2;
-            const dist = Math.hypot(canvas.width / 2, canvas.height / 2) + 80;
+            const dist = viewDiagonal + 90;
             const r = Math.random();
             let type = 'basic';
             if (s.t > 18 && r < 0.28) type = 'fast';
@@ -3037,10 +3208,16 @@ function showSoloLevelUp() {
 
 /**
  * ============================================================================
- * 7. 輸入發送與 60FPS 畫面渲染主迴圈
+ * 7. 輸入發送、隊友方向雷達箭頭與 60FPS 無卡頓渲染主迴圈
  * ============================================================================
  */
 window.addEventListener('keydown', e => {
+    if ((e.code === 'Escape' || e.code === 'KeyP') && !e.repeat) {
+        if (gameState === 'PLAYING' || gameState === 'PAUSED') {
+            togglePauseGame();
+            return;
+        }
+    }
     keys[e.code] = true;
     sendOnlineInput();
 });
@@ -3057,7 +3234,7 @@ function sendOnlineInput(force = false) {
     const isStop = (dx === 0 && dy === 0 && (lastSentDx !== 0 || lastSentDy !== 0));
     const diff = Math.hypot(dx - lastSentDx, dy - lastSentDy);
 
-    if (force || isStop || (diff > 0.04 && now - lastInputSendTime >= 35)) {
+    if (force || isStop || (diff > 0.04 && now - lastInputSendTime >= 33)) {
         lastSentDx = dx;
         lastSentDy = dy;
         lastInputSendTime = now;
@@ -3082,59 +3259,79 @@ function initLeaves() {
     }
 }
 
-function renderWorld(dt) {
-    renderTime += dt;
-    if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 35);
+function renderWorld(dt, isPaused = false) {
+    // 鏡頭平滑縮放過渡（即使暫停時亦可隨時切換遠近視野）
+    cameraZoom += (targetCameraZoom - cameraZoom) * Math.min(1, dt * 10);
 
-    if (mode === 'ONLINE') {
-        const { dx, dy } = getMoveVector();
-        worldState.players.forEach(p => {
-            if (p.rx === undefined) { p.rx = p.x; p.ry = p.y; }
-            if (p.id === myId) {
-                if (!p.downed && gameState === 'PLAYING' && (dx !== 0 || dy !== 0)) {
-                    p.moving = true;
-                    p.rx += dx * (p.spd || 225) * dt;
-                    p.ry += dy * (p.spd || 225) * dt;
-                    if (dx < -0.05) p.facing = 'left';
-                    if (dx > 0.05) p.facing = 'right';
+    if (!isPaused) {
+        renderTime += dt;
+        if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 35);
+
+        if (mode === 'ONLINE') {
+            const { dx, dy } = getMoveVector();
+            const blend = Math.min(1, dt * 16);
+
+            worldState.players.forEach(p => {
+                if (p.rx === undefined) { p.rx = p.x; p.ry = p.y; }
+                if (p.id === myId) {
+                    // 本地玩家 0 延遲即時移動預測
+                    if (!p.downed && gameState === 'PLAYING' && (dx !== 0 || dy !== 0)) {
+                        p.moving = true;
+                        p.rx += dx * (p.spd || 225) * dt;
+                        p.ry += dy * (p.spd || 225) * dt;
+                        if (dx < -0.05) p.facing = 'left';
+                        if (dx > 0.05) p.facing = 'right';
+                    } else {
+                        p.moving = false;
+                    }
                 } else {
-                    p.moving = false;
+                    // 隊友速度向量外推 + 平滑校正，消除 30Hz 步進感
+                    p.rx += (p.vx || 0) * dt;
+                    p.ry += (p.vy || 0) * dt;
+                    p.rx += (p.x - p.rx) * blend;
+                    p.ry += (p.y - p.ry) * blend;
                 }
-            } else {
-                p.rx += (p.x - p.rx) * Math.min(1, dt * 18);
-                p.ry += (p.y - p.ry) * Math.min(1, dt * 18);
-            }
-        });
+            });
 
-        worldState.enemies.forEach(e => {
-            if (e.rx === undefined) { e.rx = e.x; e.ry = e.y; }
-            e.rx += (e.x - e.rx) * Math.min(1, dt * 18);
-            e.ry += (e.y - e.ry) * Math.min(1, dt * 18);
-        });
+            worldState.enemies.forEach(e => {
+                if (e.rx === undefined) { e.rx = e.x; e.ry = e.y; }
+                // 敵人速度向量外推 + 平滑校正，讓怪物群以 60FPS 絲滑推進
+                e.rx += (e.vx || 0) * dt;
+                e.ry += (e.vy || 0) * dt;
+                e.rx += (e.x - e.rx) * blend;
+                e.ry += (e.y - e.ry) * blend;
+            });
 
-        worldState.projectiles.forEach(pr => {
-            pr.x += (pr.vx || 0) * dt;
-            pr.y += (pr.vy || 0) * dt;
-        });
+            worldState.projectiles.forEach(pr => {
+                pr.x += (pr.vx || 0) * dt;
+                pr.y += (pr.vy || 0) * dt;
+            });
+        }
     }
 
     const me = worldState.players.find(p => p.id === myId) || worldState.players[0];
     if (me) {
-        camera.x = (me.rx ?? me.x) - canvas.width / 2;
-        camera.y = (me.ry ?? me.y) - canvas.height / 2;
+        camera.x = me.rx ?? me.x;
+        camera.y = me.ry ?? me.y;
     }
 
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
-    const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
-    const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
-    ctx.translate(Math.round(-camera.x + shakeX), Math.round(-camera.y + shakeY));
+    const shakeX = (!isPaused && screenShake > 0) ? (Math.random() - 0.5) * screenShake : 0;
+    const shakeY = (!isPaused && screenShake > 0) ? (Math.random() - 0.5) * screenShake : 0;
+
+    // 支援遠近視野縮放的平滑浮點鏡頭
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(cameraZoom, cameraZoom);
+    ctx.translate(-camera.x + shakeX, -camera.y + shakeY);
 
     if (groundPattern) {
+        const viewW = canvas.width / cameraZoom + 128;
+        const viewH = canvas.height / cameraZoom + 128;
         ctx.fillStyle = groundPattern;
-        ctx.fillRect(camera.x - 32, camera.y - 32, canvas.width + 64, canvas.height + 64);
+        ctx.fillRect(camera.x - viewW / 2, camera.y - viewH / 2, viewW, viewH);
     }
 
     for (const g of worldState.gems) {
@@ -3252,7 +3449,7 @@ function renderWorld(dt) {
 
     for (let i = visualEffects.length - 1; i >= 0; i--) {
         const fx = visualEffects[i];
-        fx.life -= dt;
+        if (!isPaused) fx.life -= dt;
         if (fx.life <= 0) { visualEffects.splice(i, 1); continue; }
         const alpha = fx.life / fx.maxLife;
         ctx.save();
@@ -3312,9 +3509,11 @@ function renderWorld(dt) {
 
     for (let i = particles.length - 1; i >= 0; i--) {
         const pt = particles[i];
-        pt.x += pt.vx * dt;
-        pt.y += pt.vy * dt;
-        pt.life -= dt;
+        if (!isPaused) {
+            pt.x += pt.vx * dt;
+            pt.y += pt.vy * dt;
+            pt.life -= dt;
+        }
         if (pt.life <= 0) { particles.splice(i, 1); continue; }
         ctx.save();
         ctx.globalAlpha = pt.life / pt.maxLife;
@@ -3325,8 +3524,10 @@ function renderWorld(dt) {
 
     for (let i = damageTexts.length - 1; i >= 0; i--) {
         const t = damageTexts[i];
-        t.y -= 38 * dt;
-        t.life -= dt;
+        if (!isPaused) {
+            t.y -= 38 * dt;
+            t.life -= dt;
+        }
         if (t.life <= 0) { damageTexts.splice(i, 1); continue; }
         ctx.save();
         ctx.globalAlpha = Math.min(1, t.life * 1.6);
@@ -3341,19 +3542,26 @@ function renderWorld(dt) {
 
     ctx.restore();
 
+    // 飄落木葉
     for (const leaf of ambientLeaves) {
-        leaf.sway += dt * 3;
-        leaf.x += (leaf.vx + Math.sin(leaf.sway) * 20) * dt;
-        leaf.y += leaf.vy * dt;
-        if (leaf.x < -20 || leaf.y > canvas.height + 20) {
-            leaf.x = canvas.width + 15;
-            leaf.y = Math.random() * canvas.height;
+        if (!isPaused) {
+            leaf.sway += dt * 3;
+            leaf.x += (leaf.vx + Math.sin(leaf.sway) * 20) * dt;
+            leaf.y += leaf.vy * dt;
+            if (leaf.x < -20 || leaf.y > canvas.height + 20) {
+                leaf.x = canvas.width + 15;
+                leaf.y = Math.random() * canvas.height;
+            }
         }
         ctx.fillStyle = leaf.color;
         ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), 5, 3);
     }
 
-    if (touchJoy.activeId !== null) {
+    // 繪製「畫面外隊友方向指示箭頭＋頭像＋距離」
+    drawTeammateEdgeIndicators();
+
+    // 手機觸控浮動虛擬搖桿
+    if (!isPaused && touchJoy.activeId !== null) {
         ctx.save();
         ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.72)';
@@ -3383,9 +3591,123 @@ function renderWorld(dt) {
     }
 }
 
+/**
+ * 螢幕邊緣隊友位置指示器：當隊友離開鏡頭視野時，在螢幕邊緣顯示方向箭頭、頭像與距離
+ */
+function drawTeammateEdgeIndicators() {
+    if (mode !== 'ONLINE' || worldState.players.length <= 1) return;
+
+    const halfW = canvas.width / 2;
+    const halfH = canvas.height / 2;
+    const padX = 52;
+    const padTop = 105;
+    const padBottom = 56;
+
+    for (const p of worldState.players) {
+        if (p.id === myId) continue;
+        const tx = p.rx ?? p.x;
+        const ty = p.ry ?? p.y;
+
+        // 轉換成目前鏡頭縮放下的螢幕座標
+        const sx = (tx - camera.x) * cameraZoom + halfW;
+        const sy = (ty - camera.y) * cameraZoom + halfH;
+
+        const isOffscreen = (sx < 34 || sx > canvas.width - 34 || sy < 70 || sy > canvas.height - 34);
+        if (!isOffscreen && !p.downed) continue;
+
+        const dx = sx - halfW;
+        const dy = sy - halfH;
+        const angle = Math.atan2(dy, dx);
+        const distMeters = Math.round(Math.hypot(tx - camera.x, ty - camera.y) / 25);
+
+        let ix = sx;
+        let iy = sy - 58;
+
+        if (isOffscreen) {
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const maxX = halfW - padX;
+            const maxYTop = halfH - padTop;
+            const maxYBot = halfH - padBottom;
+
+            let t = Infinity;
+            if (cos > 0.001) t = Math.min(t, maxX / cos);
+            if (cos < -0.001) t = Math.min(t, -maxX / cos);
+            if (sin > 0.001) t = Math.min(t, maxYBot / sin);
+            if (sin < -0.001) t = Math.min(t, -maxYTop / sin);
+
+            ix = halfW + cos * t;
+            iy = halfH + sin * t;
+        }
+
+        const isDown = p.downed;
+        const blink = isDown && (Math.floor(renderTime * 6) % 2 === 0);
+        const mainColor = isDown ? (blink ? '#ef4444' : '#fca5a5') : '#38bdf8';
+
+        ctx.save();
+
+        // 1. 指向隊友的尖銳三角形箭頭
+        if (isOffscreen) {
+            const arrowDist = 28;
+            const ax = ix + Math.cos(angle) * arrowDist;
+            const ay = iy + Math.sin(angle) * arrowDist;
+            ctx.save();
+            ctx.translate(ax, ay);
+            ctx.rotate(angle);
+            ctx.fillStyle = mainColor;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, 0);
+            ctx.lineTo(-7, 7);
+            ctx.lineTo(-4, 0);
+            ctx.lineTo(-7, -7);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 2. 圓形徽章底框 + 隊友迷你頭像
+        ctx.fillStyle = isDown ? '#450a0a' : '#0f172a';
+        ctx.strokeStyle = mainColor;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(ix, iy, 19, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        const set = SPRITES[p.charId] || SPRITES.naruto;
+        const img = set[0].right;
+        ctx.drawImage(img, 14, 4, 48, 48, Math.round(ix - 14), Math.round(iy - 14), 28, 28);
+
+        // 3. 隊友名字與距離標籤
+        const label = isDown ? `${p.name} 快救援!` : `${p.name} (${distMeters}m)`;
+        ctx.font = "bold 11px 'Courier New', monospace";
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#000';
+        ctx.fillText(label, Math.round(ix + 1), Math.round(iy + 31));
+        ctx.fillStyle = mainColor;
+        ctx.fillText(label, Math.round(ix), Math.round(iy + 30));
+
+        ctx.restore();
+    }
+}
+
 function drawPlayerEntity(p) {
     const px = p.rx ?? p.x;
     const py = p.ry ?? p.y;
+
+    // 隊友腳下專屬青色定位光圈，混戰中一眼認出隊友
+    if (p.id !== myId && !p.downed) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(px, py + 36, 28, 11, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
 
     if (!p.downed && p.shadowLv > 0) {
         const r = p.shadowR || 135;
@@ -3446,29 +3768,29 @@ function drawPlayerEntity(p) {
 
     ctx.save();
     if (p.downed) {
-        ctx.translate(Math.round(px), Math.round(py + 16));
+        ctx.translate(px, py + 16);
         ctx.rotate(Math.PI / 2);
         ctx.globalAlpha = 0.7;
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
     } else {
-        ctx.drawImage(img, Math.round(px - img.width / 2), Math.round(py - img.height / 2));
+        ctx.drawImage(img, px - img.width / 2, py - img.height / 2);
     }
     ctx.restore();
 
     ctx.font = "bold 12px 'Courier New', monospace";
     ctx.textAlign = 'center';
     ctx.fillStyle = '#000';
-    ctx.fillText(p.name, Math.round(px + 1), Math.round(py - 46));
+    ctx.fillText(p.name, px + 1, py - 46);
     ctx.fillStyle = p.id === myId ? '#fbbf24' : '#38bdf8';
-    ctx.fillText(p.name, Math.round(px), Math.round(py - 47));
+    ctx.fillText(p.name, px, py - 47);
 
     const bw = 48;
     ctx.fillStyle = '#090d16';
-    ctx.fillRect(Math.round(px - bw / 2 - 1), Math.round(py + 42), bw + 2, 7);
+    ctx.fillRect(px - bw / 2 - 1, py + 42, bw + 2, 7);
     ctx.fillStyle = '#ef4444';
-    ctx.fillRect(Math.round(px - bw / 2), Math.round(py + 43), bw, 5);
+    ctx.fillRect(px - bw / 2, py + 43, bw, 5);
     ctx.fillStyle = '#22c55e';
-    ctx.fillRect(Math.round(px - bw / 2), Math.round(py + 43), Math.round(bw * (p.hp / p.maxHp)), 5);
+    ctx.fillRect(px - bw / 2, py + 43, bw * (p.hp / p.maxHp), 5);
 
     if (!p.downed && p.raikiriLv > 0) {
         const time = renderTime * (p.raikiriSpd || 3.4);
@@ -3493,7 +3815,7 @@ function drawPlayerEntity(p) {
                 ctx.fillStyle = '#7dd3fc';
                 ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(Math.round(sx - 3), Math.round(sy - 3), 5, 5);
+                ctx.fillRect(sx - 3, sy - 3, 5, 5);
             }
         }
     }
@@ -3508,7 +3830,7 @@ function drawCloneEntity(p, ox, oy) {
 
     ctx.save();
     ctx.globalAlpha = 0.72;
-    ctx.drawImage(img, Math.round(cx - img.width / 2), Math.round(cy - img.height / 2));
+    ctx.drawImage(img, cx - img.width / 2, cy - img.height / 2);
     ctx.restore();
 }
 
@@ -3530,7 +3852,7 @@ function drawEnemyEntity(e) {
     ctx.ellipse(ex, footY, 20, 7, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.drawImage(img, Math.round(ex - img.width / 2), Math.round(ey - img.height / 2));
+    ctx.drawImage(img, ex - img.width / 2, ey - img.height / 2);
 
     if (e.slow) {
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
@@ -3542,11 +3864,11 @@ function drawEnemyEntity(e) {
 
     if (e.type === 'elite' && e.hp < e.maxHp) {
         const bw = 54;
-        const topY = Math.round(ey - img.height / 2 - 10);
+        const topY = ey - img.height / 2 - 10;
         ctx.fillStyle = '#000';
-        ctx.fillRect(Math.round(ex - bw / 2 - 1), topY - 1, bw + 2, 6);
+        ctx.fillRect(ex - bw / 2 - 1, topY - 1, bw + 2, 6);
         ctx.fillStyle = '#ef4444';
-        ctx.fillRect(Math.round(ex - bw / 2), topY, Math.round(bw * (e.hp / e.maxHp)), 4);
+        ctx.fillRect(ex - bw / 2, topY, bw * (e.hp / e.maxHp), 4);
     }
 }
 
@@ -3558,7 +3880,10 @@ function mainLoop(now) {
     if (gameState === 'PLAYING') {
         if (mode === 'ONLINE') sendOnlineInput();
         if (mode === 'SOLO') stepSolo(dt);
-        renderWorld(dt);
+        renderWorld(dt, false);
+    } else if (gameState === 'PAUSED' || gameState === 'LEVELUP') {
+        // 暫停或升級期間仍允許鏡頭縮放平滑過渡
+        renderWorld(dt, true);
     } else if (gameState === 'START') {
         ctx.imageSmoothingEnabled = false;
         if (groundPattern) {
