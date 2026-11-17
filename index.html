@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NARUTO SURVIVORS 火滾忍者生存戰 // 3-PLAYER CO-OP</title>
+    <title>NARUTO SURVIVORS 火滾忍者生存戰 </title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         * {
@@ -515,26 +515,99 @@
             color: #cbd5e1;
         }
 
+        /* Game Over 摘要與雙重排名榜樣式 */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 14px 0;
+            gap: 8px;
+            margin: 10px 0;
         }
         .summary-cell {
             background: #1e293b;
             border: 2px solid #475569;
-            padding: 10px 6px;
+            padding: 8px 6px;
         }
         .summary-cell .label {
             font-size: 11px;
             color: #94a3b8;
         }
         .summary-cell .val {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: bold;
             color: #fbbf24;
-            margin-top: 4px;
+            margin-top: 3px;
+        }
+
+        .ranking-section {
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid #475569;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .ranking-header {
+            font-size: 13px;
+            font-weight: bold;
+            color: #38bdf8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+            margin-bottom: 7px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .rank-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px;
+            margin-bottom: 5px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            font-size: 12px;
+        }
+        .rank-row:last-child {
+            margin-bottom: 0;
+        }
+        .rank-row.rank-1 {
+            border-color: #fbbf24;
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.16), rgba(30, 41, 59, 0.95));
+        }
+        .rank-row.rank-2 {
+            border-color: #cbd5e1;
+        }
+        .rank-row.rank-3 {
+            border-color: #d97706;
+        }
+        .rank-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rank-badge {
+            font-weight: bold;
+            min-width: 68px;
+            font-size: 12px;
+        }
+        .rank-avatar {
+            width: 30px;
+            height: 30px;
+            background: #0f172a;
+            border: 1px solid #64748b;
+            flex-shrink: 0;
+        }
+        .rank-right {
+            text-align: right;
+            font-weight: bold;
+        }
+        .new-rec-tag {
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            padding: 1px 5px;
+            border: 1px solid #fff;
+            margin-left: 5px;
         }
 
         @media (max-width: 720px) {
@@ -686,7 +759,7 @@
             <div class="char-card locked" id="card-minato" onclick="chooseCharacter('minato')">
                 <canvas class="char-preview" id="prev-minato" width="80" height="88"></canvas>
                 <div class="char-name" id="minato-title">？？？ (隱藏角色)</div>
-                <div class="char-role" id="minato-role" style="color:#f87171;">🔒 累計擊殺 1000 人解鎖</div>
+                <div class="char-role" id="minato-role" style="color:#f87171;">🔒 累計擊殺 1000 敵人解鎖</div>
                 <div class="char-desc" id="minato-desc">解鎖進度: 0 / 1000</div>
                 <div class="lock-progress-track" id="minato-progress-box">
                     <div class="lock-progress-fill" id="minato-progress-fill"></div>
@@ -729,9 +802,9 @@
         <div id="upgrade-options"></div>
     </div>
 
-    <!-- Game Over 畫面 -->
+    <!-- Game Over 排名榜與結算畫面 -->
     <div id="menu-gameover" class="modal" style="display:none;">
-        <div class="badge-sub">MISSION FAILED</div>
+        <div class="badge-sub">MISSION COMPLETE // BATTLE REPORT</div>
         <h1>全隊查克拉耗盡</h1>
         <div class="summary-grid">
             <div class="summary-cell">
@@ -739,16 +812,34 @@
                 <div class="val" id="go-time">00:00</div>
             </div>
             <div class="summary-cell">
-                <div class="label">全隊等級</div>
+                <div class="label">隊伍等級</div>
                 <div class="val" id="go-level">1</div>
             </div>
             <div class="summary-cell">
-                <div class="label">總擊殺數</div>
+                <div class="label">本局總擊殺</div>
                 <div class="val" id="go-kills">0</div>
             </div>
         </div>
-        <div id="go-scoreboard" style="margin-bottom:14px; font-size:13px; color:#cbd5e1;"></div>
-        <button id="btn-restart" class="action-btn" onclick="handleRestart()">重新挑戰</button>
+
+        <!-- 1. 本局忍者貢獻排名榜 -->
+        <div class="ranking-section">
+            <div class="ranking-header">
+                <span>🏆 本局忍者擊殺排名榜</span>
+                <span id="go-unlock-hint" style="font-size:11px; color:#fbbf24;"></span>
+            </div>
+            <div id="go-match-ranking"></div>
+        </div>
+
+        <!-- 2. 歷代最高防衛紀錄 Top 5 -->
+        <div class="ranking-section">
+            <div class="ranking-header">
+                <span>📜 木葉歷代防衛英雄榜 (TOP 5)</span>
+                <span style="font-size:11px; color:#94a3b8;">按存活時間與擊殺排名</span>
+            </div>
+            <div id="go-history-ranking"></div>
+        </div>
+
+        <button id="btn-restart" class="action-btn" onclick="returnToMainMenu()">返回主頁 (重新選角 / 連線)</button>
     </div>
 
 <script>
@@ -759,6 +850,7 @@
  */
 const SERVER_URL = 'https://naruto-survivors.onrender.com';
 const MINATO_UNLOCK_KILLS = 1000;
+const LEADERBOARD_STORAGE_KEY = 'naruto_survivors_top5_v1';
 
 let accumulatedKills = parseInt(localStorage.getItem('naruto_coop_total_kills') || '0', 10) || 0;
 let lastSyncedOnlineKills = 0;
@@ -816,13 +908,12 @@ function refreshMinatoUnlockUI() {
     } else {
         card.classList.add('locked');
         titleEl.innerText = '？？？ (隱藏角色)';
-        roleEl.innerText = '🔒 累計擊殺 1000 人解鎖';
+        roleEl.innerText = '🔒 累計擊殺 1000 敵人解鎖';
         roleEl.style.color = '#f87171';
         descEl.innerText = `解鎖進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}`;
         if (progBox) progBox.style.display = 'block';
         if (progFill) progFill.style.width = `${Math.min(100, (accumulatedKills / MINATO_UNLOCK_KILLS) * 100)}%`;
 
-        // 繪製全黑神秘剪影（完全隱藏角色樣貌）
         const silhouette = SPRITES.minato[0].silhouetteRight;
         cx.drawImage(silhouette, Math.round((prevCanvas.width - silhouette.width) / 2), Math.round((prevCanvas.height - silhouette.height) / 2));
     }
@@ -995,7 +1086,6 @@ class PixelBuilder {
     }
 }
 
-// 1. 漩渦鳴人
 function buildNarutoFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -1058,7 +1148,6 @@ function buildNarutoFrame(frame) {
     return pb.bake(2);
 }
 
-// 2. 旗木卡卡西
 function buildKakashiFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -1114,7 +1203,6 @@ function buildKakashiFrame(frame) {
     return pb.bake(2);
 }
 
-// 3. 自來也
 function buildJiraiyaFrame(frame) {
     const pb = new PixelBuilder(40, 44);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -1176,23 +1264,19 @@ function buildJiraiyaFrame(frame) {
     return pb.bake(2);
 }
 
-// 4. 宇智波佐助 (深藍高領忍服 + 紫色粗繩腰帶 + 寫輪眼紅瞳)
 function buildSasukeFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
     const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
     const ropeWave = [0, 1, 0, -1][frame];
 
-    // 背後紫色粗繩結尾端
     pb.line(12, 26 + bob, 7, 28 + bob + ropeWave, '#7e22ce');
     pb.line(12, 27 + bob, 8, 30 + bob + ropeWave, '#9333ea');
 
-    // 後方手臂（黑色護臂）
     const backArmX = 11 - Math.abs(legSwing) * 0.5;
     pb.line(14, 22 + bob, backArmX, 25 + bob, '#1e293b');
     pb.rect(backArmX - 1, 26 + bob, 2, 2, '#ffcca8');
 
-    // 雙腿（深藍戰裙布＋黑色長褲＋涼鞋）
     const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
     pb.line(16, 29 + bob, lLegX, 36, '#0f172a');
     pb.line(17, 29 + bob, lLegX + 1, 36, '#1e293b');
@@ -1202,55 +1286,45 @@ function buildSasukeFrame(frame) {
     pb.line(20, 29 + bob, rLegX + 1, 36, '#334155');
     pb.rect(rLegX - 1, 36, 4, 2, '#1e293b');
 
-    // 深藍宇智波高領上衣＋戰裙下擺
     pb.rect(14, 20 + bob, 10, 11, '#1e3a8a');
     pb.rect(15, 20 + bob, 8, 10, '#1d4ed8');
-    // 胸口拉鍊微開
     pb.rect(18, 20 + bob, 2, 3, '#ffcca8');
-    // 標誌性紫色注連繩腰帶
     pb.rect(13, 26 + bob, 12, 2, '#7e22ce');
     pb.line(14, 26 + bob, 24, 27 + bob, '#a855f7');
 
-    // 俊朗冷酷臉龐＋寫輪眼紅瞳
     pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
     pb.rect(15, 14 + bob, 3, 2, '#ffffff');
-    pb.rect(16, 14 + bob, 2, 2, '#ef4444'); // 寫輪眼紅瞳
+    pb.rect(16, 14 + bob, 2, 2, '#ef4444');
     pb.rect(21, 14 + bob, 3, 2, '#ffffff');
     pb.rect(22, 14 + bob, 2, 2, '#ef4444');
     pb.line(18, 18 + bob, 21, 18 + bob, '#b56545');
 
-    // 佐助招牌深藍黑鴨尾刺蝟髮＋修飾臉側的長劉海
     pb.oval(18, 8 + bob, 8.2, 4.2, '#0f172a');
     pb.oval(17, 7 + bob, 7.0, 3.2, '#1e293b');
-    pb.line(11, 5 + bob, 15, 8 + bob, '#1e293b'); // 後腦鴨尾尖刺
+    pb.line(11, 5 + bob, 15, 8 + bob, '#1e293b');
     pb.line(10, 8 + bob, 14, 10 + bob, '#334155');
-    // 臉頰兩側長劉海
     pb.line(14, 10 + bob, 13, 17 + bob, '#0f172a');
     pb.line(23, 10 + bob, 24, 16 + bob, '#1e293b');
     pb.line(19, 9 + bob, 19, 13 + bob, '#0f172a');
 
-    // 前方手臂（草薙劍氣光澤）
     const frontArmX = 11 + (legSwing * 0.4);
     pb.line(15, 22 + bob, frontArmX, 26 + bob, '#1e293b');
     pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#ffcca8');
-    pb.line(frontArmX - 1, 27 + bob, frontArmX - 5, 29 + bob, '#38bdf8'); // 千鳥微光
+    pb.line(frontArmX - 1, 27 + bob, frontArmX - 5, 29 + bob, '#38bdf8');
 
     pb.addOutline('#0a0d18');
     return pb.bake(2);
 }
 
-// 5. 春野櫻 (粉紅短髮 + 紅護額 + 百豪之印 + 紅白忍服)
 function buildSakuraFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
     const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
 
-    // 後方手臂（黑拳套）
     const backArmX = 11 - Math.abs(legSwing) * 0.5;
     pb.line(14, 22 + bob, backArmX, 25 + bob, '#ffcca8');
     pb.rect(backArmX - 1, 26 + bob, 2, 2, '#1e293b');
 
-    // 雙腿（粉紅百褶短裙＋黑緊身褲＋長靴）
     const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
     pb.line(16, 29 + bob, lLegX, 36, '#1e293b');
     pb.rect(lLegX - 1, 34, 4, 4, '#0f172a');
@@ -1258,34 +1332,29 @@ function buildSakuraFrame(frame) {
     pb.line(19, 29 + bob, rLegX, 36, '#334155');
     pb.rect(rLegX - 1, 34, 4, 4, '#1e293b');
 
-    // 緋紅無袖忍服上衣＋白色圓徽＋粉紅裙擺
     pb.rect(14, 21 + bob, 10, 7, '#e11d48');
     pb.rect(15, 21 + bob, 8, 6, '#f43f5e');
-    pb.rect(18, 22 + bob, 2, 2, '#ffffff'); // 白色圓紋
-    pb.rect(13, 27 + bob, 12, 3, '#fda4af'); // 粉紅裙擺
+    pb.rect(18, 22 + bob, 2, 2, '#ffffff');
+    pb.rect(13, 27 + bob, 12, 3, '#fda4af');
 
-    // 臉部與翠綠大眼＋額頭紫色百豪之印
     pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
     pb.rect(15, 14 + bob, 3, 2, '#ffffff');
-    pb.rect(16, 14 + bob, 2, 2, '#16a34a'); // 翠綠瞳孔
+    pb.rect(16, 14 + bob, 2, 2, '#16a34a');
     pb.rect(21, 14 + bob, 3, 2, '#ffffff');
     pb.rect(22, 14 + bob, 2, 2, '#16a34a');
-    pb.px(19, 12 + bob, '#7e22ce'); // 額頭百豪之印菱形！
+    pb.px(19, 12 + bob, '#7e22ce');
     pb.line(18, 18 + bob, 20, 18 + bob, '#e11d48');
 
-    // 紅色木葉護額（當作髮箍戴在頭頂）
     pb.rect(12, 9 + bob, 14, 3, '#dc2626');
     pb.rect(16, 9 + bob, 7, 3, '#cbd5e1');
 
-    // 櫻花粉紅齊肩短髮
     pb.oval(18, 8 + bob, 8.2, 4.2, '#f472b6');
     pb.oval(18, 7 + bob, 7.0, 3.0, '#f9a8d4');
-    pb.rect(12, 11 + bob, 3, 7, '#f472b6'); // 左側鬢髮
-    pb.rect(24, 11 + bob, 2, 6, '#f9a8d4'); // 右側鬢髮
+    pb.rect(12, 11 + bob, 3, 7, '#f472b6');
+    pb.rect(24, 11 + bob, 2, 6, '#f9a8d4');
     pb.line(16, 10 + bob, 15, 12 + bob, '#fbcfe8');
     pb.line(21, 10 + bob, 22, 12 + bob, '#fbcfe8');
 
-    // 前方手臂（戴黑色怪力拳套）
     const frontArmX = 11 + (legSwing * 0.4);
     pb.line(15, 22 + bob, frontArmX, 26 + bob, '#ffcca8');
     pb.rect(frontArmX - 1, 25 + bob, 3, 3, '#0f172a');
@@ -1294,19 +1363,16 @@ function buildSakuraFrame(frame) {
     return pb.bake(2);
 }
 
-// 6. 奈良鹿丸 (鳳梨頭沖天馬尾 + 綠馬甲 + 黑長袖)
 function buildShikamaruFrame(frame) {
     const pb = new PixelBuilder(38, 42);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
     const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
     const ponyWave = [0, 1, 0, -1][frame];
 
-    // 後方黑袖手臂
     const backArmX = 11 - Math.abs(legSwing) * 0.5;
     pb.line(14, 22 + bob, backArmX, 25 + bob, '#1e293b');
     pb.rect(backArmX - 1, 26 + bob, 2, 2, '#ffcca8');
 
-    // 雙腿（黑色七分忍褲＋白色小腿繃帶）
     const lLegX = 15 - legSwing, rLegX = 20 + legSwing;
     pb.line(16, 29 + bob, lLegX, 36, '#0f172a');
     pb.rect(lLegX - 1, 36, 4, 2, '#1e293b');
@@ -1315,28 +1381,23 @@ function buildShikamaruFrame(frame) {
     pb.rect(rLegX - 1, 33, 3, 2, '#f8fafc');
     pb.rect(rLegX - 1, 36, 4, 2, '#1e293b');
 
-    // 綠色木葉馬甲＋黑色緊身衣
     pb.rect(14, 20 + bob, 10, 9, '#15803d');
     pb.rect(15, 20 + bob, 8, 8, '#22c55e');
     pb.line(19, 20 + bob, 19, 28 + bob, '#14532d');
 
-    // 臉部與冷靜眼神
     pb.oval(19, 15 + bob, 6.0, 5.4, '#ffcca8');
-    pb.rect(15, 14 + bob, 3, 1, '#0f172a'); // 銳利半睜眼
+    pb.rect(15, 14 + bob, 3, 1, '#0f172a');
     pb.rect(21, 14 + bob, 3, 1, '#0f172a');
-    pb.px(12, 16 + bob, '#cbd5e1'); // 銀色耳環
+    pb.px(12, 16 + bob, '#cbd5e1');
     pb.line(18, 18 + bob, 20, 18 + bob, '#b56545');
 
-    // 額頭劉海與招牌【沖天鳳梨頭馬尾】
     pb.oval(19, 10 + bob, 6.5, 2.5, '#0f172a');
-    // 頭頂高高束起的散開馬尾
     pb.rect(17, 7 + bob, 3, 2, '#334155');
     pb.line(18, 7 + bob, 13, 3 + bob + ponyWave, '#0f172a');
     pb.line(18, 6 + bob, 15, 1 + bob + ponyWave, '#1e293b');
     pb.line(19, 6 + bob, 18, 1 + bob + ponyWave, '#0f172a');
     pb.line(19, 7 + bob, 12, 6 + bob + ponyWave, '#1e293b');
 
-    // 前方黑袖手臂
     const frontArmX = 11 + (legSwing * 0.4);
     pb.line(15, 22 + bob, frontArmX, 26 + bob, '#1e293b');
     pb.rect(frontArmX - 1, 26 + bob, 2, 2, '#ffcca8');
@@ -1345,26 +1406,22 @@ function buildShikamaruFrame(frame) {
     return pb.bake(2);
 }
 
-// 7. 隱藏角色：四代目・波風水門 (金髮藍護額 + 紅焰白底四代目火影御神袍 + 飛雷神苦無)
 function buildMinatoFrame(frame) {
     const pb = new PixelBuilder(40, 44);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
     const legSwing = frame === 0 ? -3 : frame === 2 ? 3 : 0;
     const cloakWave = [0, 2, 0, -2][frame];
 
-    // 1. 飄揚的白色【四代目火影御神袍】與下擺【鮮紅火焰紋】
     for (let y = 19; y <= 37; y++) {
         const halfW = 6 + Math.floor((y - 19) * 0.35);
         pb.rect(20 - halfW - cloakWave * 0.5, y + bob, halfW * 2, 1, '#f8fafc');
         pb.rect(20 - halfW - cloakWave * 0.5, y + bob, 2, 1, '#cbd5e1');
     }
-    // 御神袍下擺經典紅色三角火焰紋
     for (let x = 10; x <= 29; x += 4) {
         pb.line(x - cloakWave, 37 + bob, x + 1 - cloakWave, 34 + bob, '#ef4444');
         pb.line(x + 2 - cloakWave, 37 + bob, x + 1 - cloakWave, 34 + bob, '#dc2626');
     }
 
-    // 2. 內層綠色上忍馬甲與藍色忍褲
     pb.rect(16, 20 + bob, 8, 9, '#15803d');
     pb.rect(17, 20 + bob, 6, 8, '#22c55e');
     const lLegX = 16 - legSwing, rLegX = 21 + legSwing;
@@ -1373,7 +1430,6 @@ function buildMinatoFrame(frame) {
     pb.line(20, 29 + bob, rLegX, 39, '#1d4ed8');
     pb.rect(rLegX - 1, 39, 4, 2, '#0f172a');
 
-    // 3. 溫柔帥氣臉龐＋水藍瞳孔
     pb.oval(20, 15 + bob, 6.2, 5.4, '#ffcca8');
     pb.rect(16, 14 + bob, 3, 2, '#ffffff');
     pb.rect(17, 14 + bob, 2, 2, '#0284c7');
@@ -1381,33 +1437,28 @@ function buildMinatoFrame(frame) {
     pb.rect(23, 14 + bob, 2, 2, '#0284c7');
     pb.line(19, 18 + bob, 22, 18 + bob, '#b56545');
 
-    // 4. 藍色木葉護額
     pb.rect(13, 10 + bob, 14, 3, '#1d4ed8');
     pb.rect(16, 10 + bob, 9, 3, '#cbd5e1');
     pb.px(20, 11 + bob, '#334155');
 
-    // 5. 水門招牌金色刺蝟髮＋臉頰兩側長金髮鬢角
     pb.oval(19, 6 + bob, 9.0, 3.8, '#eab308');
     pb.oval(19, 5 + bob, 7.5, 2.8, '#facc15');
     pb.line(14, 2 + bob, 16, 6 + bob, '#fef08a');
     pb.line(19, 1 + bob, 19, 5 + bob, '#fef08a');
     pb.line(23, 2 + bob, 22, 6 + bob, '#fef08a');
     pb.line(26, 4 + bob, 24, 7 + bob, '#facc15');
-    // 兩側垂落長金髮
     pb.line(13, 11 + bob, 12, 18 + bob, '#facc15');
     pb.line(25, 11 + bob, 26, 18 + bob, '#fef08a');
 
-    // 6. 右手握持三叉【飛雷神苦無】
     const armX = 25 + (legSwing * 0.3);
     pb.rect(armX, 24 + bob, 3, 2, '#ffcca8');
-    pb.line(armX + 2, 24 + bob, armX + 8, 22 + bob, '#cbd5e1'); // 苦無刃
-    pb.px(armX + 5, 21 + bob, '#facc15'); // 金色閃光
+    pb.line(armX + 2, 24 + bob, armX + 8, 22 + bob, '#cbd5e1');
+    pb.px(armX + 5, 21 + bob, '#facc15');
 
     pb.addOutline('#120e1c');
     return pb.bake(2);
 }
 
-// 敵人精靈：白絕、暗部叛忍、曉組織精英
 function buildZetsuFrame(frame) {
     const pb = new PixelBuilder(34, 38);
     const bob = (frame === 1 || frame === 3) ? -1 : 0;
@@ -1551,14 +1602,18 @@ function buildAllSprites() {
     refreshMinatoUnlockUI();
 }
 
-function updateHudPortrait(charId) {
-    const pCanvas = document.getElementById('portrait-canvas');
-    const pctx = pCanvas.getContext('2d');
-    pctx.imageSmoothingEnabled = false;
-    pctx.clearRect(0, 0, 58, 58);
+function drawCharMiniPortrait(canvasEl, charId) {
+    const cx = canvasEl.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+    cx.clearRect(0, 0, canvasEl.width, canvasEl.height);
     const set = SPRITES[charId] || SPRITES.naruto;
     const img = set[0].right;
-    pctx.drawImage(img, 12, 2, 52, 52, 0, 2, 58, 58);
+    cx.drawImage(img, 12, 2, 52, 52, 0, 0, canvasEl.width, canvasEl.height);
+}
+
+function updateHudPortrait(charId) {
+    const pCanvas = document.getElementById('portrait-canvas');
+    drawCharMiniPortrait(pCanvas, charId);
 
     const names = {
         naruto: 'UZUMAKI NARUTO',
@@ -1688,7 +1743,172 @@ function createGroundPattern(ctx) {
 
 /**
  * ============================================================================
- * 4. 連線與遊戲狀態管理 (本地預測平滑移動 + 手機觸控搖桿)
+ * 4. 排名榜記錄與顯示系統 (本局 MVP 排名 + 歷代 TOP 5 英雄榜)
+ * ============================================================================
+ */
+function formatTimeStr(sec) {
+    const mins = Math.floor(sec / 60).toString().padStart(2, '0');
+    const secs = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+}
+
+function getHistoryLeaderboard() {
+    try {
+        const raw = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveAndRenderLeaderboards(summary) {
+    const minsSecs = formatTimeStr(summary.time);
+    document.getElementById('go-time').innerText = minsSecs;
+    document.getElementById('go-level').innerText = summary.level;
+    document.getElementById('go-kills').innerText = summary.totalKills;
+
+    // 隱藏角色解鎖提示
+    const hintEl = document.getElementById('go-unlock-hint');
+    if (isMinatoUnlocked()) {
+        hintEl.innerText = '★ 四代目水門已解鎖';
+        hintEl.style.color = '#4ade80';
+    } else {
+        hintEl.innerText = `水門解鎖進度: ${accumulatedKills}/${MINATO_UNLOCK_KILLS}`;
+        hintEl.style.color = '#fbbf24';
+    }
+
+    // 1. 渲染「本局忍者擊殺排名榜」
+    const sortedPlayers = [...summary.players].sort((a, b) => b.kills - a.kills);
+    const totalMatchKills = Math.max(1, summary.totalKills);
+    const matchBox = document.getElementById('go-match-ranking');
+    matchBox.innerHTML = '';
+
+    const rankTitles = [
+        { badge: '👑 1ST MVP', color: '#fbbf24' },
+        { badge: '🥈 2ND 暗部', color: '#e2e8f0' },
+        { badge: '🥉 3RD 中忍', color: '#f59e0b' }
+    ];
+
+    sortedPlayers.forEach((p, idx) => {
+        const meta = rankTitles[idx] || { badge: `#${idx + 1}`, color: '#94a3b8' };
+        const sharePct = Math.round((p.kills / totalMatchKills) * 100);
+        const isMe = (p.id === myId);
+
+        const row = document.createElement('div');
+        row.className = `rank-row rank-${idx + 1}`;
+
+        const left = document.createElement('div');
+        left.className = 'rank-left';
+
+        const badge = document.createElement('span');
+        badge.className = 'rank-badge';
+        badge.style.color = meta.color;
+        badge.innerText = meta.badge;
+
+        const av = document.createElement('canvas');
+        av.className = 'rank-avatar';
+        av.width = 30;
+        av.height = 30;
+        drawCharMiniPortrait(av, p.charId);
+
+        const nameWrap = document.createElement('div');
+        nameWrap.innerHTML = `
+            <div style="font-weight:bold; color:${isMe ? '#fbbf24' : '#fff'};">
+                ${p.name} ${isMe ? '(你)' : ''}
+            </div>
+            <div style="font-size:11px; color:#38bdf8;">${CHAR_DISPLAY_NAMES[p.charId] || p.charId}</div>
+        `;
+
+        left.appendChild(badge);
+        left.appendChild(av);
+        left.appendChild(nameWrap);
+
+        const right = document.createElement('div');
+        right.className = 'rank-right';
+        right.innerHTML = `
+            <div style="color:#fbbf24; font-size:14px;">${p.kills} 擊殺</div>
+            <div style="font-size:11px; color:#94a3b8;">貢獻 ${sharePct}%</div>
+        `;
+
+        row.appendChild(left);
+        row.appendChild(right);
+        matchBox.appendChild(row);
+    });
+
+    // 2. 更新並渲染「木葉歷代防衛英雄榜 (TOP 5)」
+    const me = sortedPlayers.find(p => p.id === myId) || sortedPlayers[0];
+    const isCoop = sortedPlayers.length > 1;
+    const entryId = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const newEntry = {
+        entryId,
+        name: me ? me.name : '木葉忍者',
+        charId: me ? me.charId : selectedChar,
+        modeLabel: isCoop ? `${sortedPlayers.length}人小隊` : '單機挑戰',
+        time: Math.floor(summary.time),
+        level: summary.level,
+        kills: summary.totalKills
+    };
+
+    const history = getHistoryLeaderboard();
+    history.push(newEntry);
+    // 優先比較存活秒數，其次比較總擊殺數
+    history.sort((a, b) => (b.time - a.time) || (b.kills - a.kills));
+    const top5 = history.slice(0, 5);
+    localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(top5));
+
+    const histBox = document.getElementById('go-history-ranking');
+    histBox.innerHTML = '';
+
+    top5.forEach((rec, idx) => {
+        const isNew = rec.entryId === entryId;
+        const row = document.createElement('div');
+        row.className = `rank-row ${idx === 0 ? 'rank-1' : ''}`;
+
+        const left = document.createElement('div');
+        left.className = 'rank-left';
+
+        const rankNum = document.createElement('span');
+        rankNum.style.fontWeight = 'bold';
+        rankNum.style.minWidth = '34px';
+        rankNum.style.color = idx === 0 ? '#fbbf24' : '#94a3b8';
+        rankNum.innerText = `NO.${idx + 1}`;
+
+        const av = document.createElement('canvas');
+        av.className = 'rank-avatar';
+        av.width = 30;
+        av.height = 30;
+        drawCharMiniPortrait(av, rec.charId);
+
+        const info = document.createElement('div');
+        info.innerHTML = `
+            <div style="font-weight:bold; color:#fff;">
+                ${rec.name} <span style="color:#38bdf8; font-size:11px;">[${rec.modeLabel}]</span>
+                ${isNew ? '<span class="new-rec-tag">NEW!</span>' : ''}
+            </div>
+            <div style="font-size:11px; color:#94a3b8;">${CHAR_DISPLAY_NAMES[rec.charId] || rec.charId} • LV.${rec.level}</div>
+        `;
+
+        left.appendChild(rankNum);
+        left.appendChild(av);
+        left.appendChild(info);
+
+        const right = document.createElement('div');
+        right.className = 'rank-right';
+        right.innerHTML = `
+            <div style="color:#4ade80;">存活 ${formatTimeStr(rec.time)}</div>
+            <div style="font-size:11px; color:#fbbf24;">${rec.kills} 擊殺</div>
+        `;
+
+        row.appendChild(left);
+        row.appendChild(right);
+        histBox.appendChild(row);
+    });
+}
+
+/**
+ * ============================================================================
+ * 5. 連線與遊戲狀態管理 (返回主頁重新選角 / 連線 + 手機觸控搖桿)
  * ============================================================================
  */
 const canvas = document.getElementById('gameCanvas');
@@ -1716,7 +1936,6 @@ let lastSentDx = 0;
 let lastSentDy = 0;
 let lastInputSendTime = 0;
 
-// 手機浮動虛擬搖桿
 const touchJoy = {
     activeId: null,
     startX: 0,
@@ -2116,18 +2335,7 @@ function connectSocket(callback) {
         document.getElementById('ui-layer').style.display = 'none';
         document.getElementById('menu-levelup').style.display = 'none';
         document.getElementById('menu-gameover').style.display = 'block';
-
-        const mins = Math.floor(summary.time / 60).toString().padStart(2, '0');
-        const secs = Math.floor(summary.time % 60).toString().padStart(2, '0');
-        document.getElementById('go-time').innerText = `${mins}:${secs}`;
-        document.getElementById('go-level').innerText = summary.level;
-        document.getElementById('go-kills').innerText = summary.totalKills;
-
-        document.getElementById('go-scoreboard').innerHTML = summary.players
-            .map(p => `${p.name} (${CHAR_DISPLAY_NAMES[p.charId] || p.charId}) — 擊殺: <b style="color:#fbbf24;">${p.kills}</b>`)
-            .join('<br>') + `<div style="margin-top:8px; color:#38bdf8;">累計總擊殺進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}</div>`;
-
-        document.getElementById('btn-restart').style.display = isHost ? 'inline-block' : 'none';
+        saveAndRenderLeaderboards(summary);
     });
 }
 
@@ -2156,12 +2364,33 @@ function hostStartGame() {
     if (socket && isHost) socket.emit('startGame');
 }
 
-function handleRestart() {
-    if (mode === 'ONLINE') {
-        if (socket && isHost) socket.emit('restartGame');
-    } else {
-        startOfflineSolo();
+/**
+ * 返回主選單：讓玩家重新選角、開啟新房間、加入其他房號或切換單機模式
+ */
+function returnToMainMenu() {
+    resetAllInputs();
+
+    if (socket && socket.connected && currentRoomCode) {
+        socket.emit('leaveRoom');
     }
+
+    currentRoomCode = '';
+    isHost = false;
+    mode = 'NONE';
+    soloState = null;
+    gameState = 'START';
+
+    document.getElementById('menu-gameover').style.display = 'none';
+    document.getElementById('menu-levelup').style.display = 'none';
+    document.getElementById('ui-layer').style.display = 'none';
+
+    document.getElementById('lobby-box').style.display = 'none';
+    document.getElementById('room-controls').style.display = 'flex';
+    document.getElementById('lobby-error').innerText = '';
+    document.getElementById('input-room-code').value = '';
+    document.getElementById('menu-start').style.display = 'block';
+
+    refreshMinatoUnlockUI();
 }
 
 function updateOnlineHud() {
@@ -2169,9 +2398,7 @@ function updateOnlineHud() {
     document.getElementById('ui-level').innerText = `LV.${worldState.lv}`;
     document.getElementById('ui-kills').innerText = worldState.kills;
 
-    const mins = Math.floor(worldState.t / 60).toString().padStart(2, '0');
-    const secs = Math.floor(worldState.t % 60).toString().padStart(2, '0');
-    document.getElementById('ui-time').innerText = `${mins}:${secs}`;
+    document.getElementById('ui-time').innerText = formatTimeStr(worldState.t);
     const wave = Math.floor(worldState.t / 30) + 1;
     document.getElementById('wave-tag').innerText = `木葉防衛 • 第 ${wave} 波`;
 
@@ -2210,7 +2437,7 @@ function updateOnlineHud() {
 
 /**
  * ============================================================================
- * 5. 內建單機模式備援引擎 (完整支援 7 位角色)
+ * 6. 內建單機模式備援引擎 (完整支援 7 位角色)
  * ============================================================================
  */
 let soloState = null;
@@ -2602,13 +2829,17 @@ function stepSolo(dt) {
                 resetAllInputs();
                 document.getElementById('ui-layer').style.display = 'none';
                 document.getElementById('menu-gameover').style.display = 'block';
-                const mins = Math.floor(s.t / 60).toString().padStart(2, '0');
-                const secs = Math.floor(s.t % 60).toString().padStart(2, '0');
-                document.getElementById('go-time').innerText = `${mins}:${secs}`;
-                document.getElementById('go-level').innerText = s.lv;
-                document.getElementById('go-kills').innerText = s.kills;
-                document.getElementById('go-scoreboard').innerHTML = `${p.name} (${CHAR_DISPLAY_NAMES[p.charId]}) — 單機挑戰紀錄<br><span style="color:#38bdf8;">累計總擊殺進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}</span>`;
-                document.getElementById('btn-restart').style.display = 'inline-block';
+                saveAndRenderLeaderboards({
+                    time: s.t,
+                    level: s.lv,
+                    totalKills: s.kills,
+                    players: [{
+                        id: 'local',
+                        name: p.name,
+                        charId: p.charId,
+                        kills: s.kills
+                    }]
+                });
                 return;
             }
         }
@@ -2806,7 +3037,7 @@ function showSoloLevelUp() {
 
 /**
  * ============================================================================
- * 6. 輸入發送與 60FPS 畫面渲染主迴圈
+ * 7. 輸入發送與 60FPS 畫面渲染主迴圈
  * ============================================================================
  */
 window.addEventListener('keydown', e => {
@@ -2906,7 +3137,6 @@ function renderWorld(dt) {
         ctx.fillRect(camera.x - 32, camera.y - 32, canvas.width + 64, canvas.height + 64);
     }
 
-    // 查克拉經驗寶石
     for (const g of worldState.gems) {
         const bob = Math.sin(renderTime * 6 + g.id) * 2.5;
         const isBig = g.val >= 10;
@@ -2924,7 +3154,6 @@ function renderWorld(dt) {
         ctx.fillRect(Math.round(g.x - 2), Math.round(g.y + bob - 3), 3, 4);
     }
 
-    // Y-Sorting 深度排序渲染
     const renderList = [];
     worldState.players.forEach(p => {
         renderList.push({ kind: 'player', y: p.ry ?? p.y, data: p });
@@ -2951,7 +3180,6 @@ function renderWorld(dt) {
         else drawEnemyEntity(item.data);
     }
 
-    // 投射物渲染
     for (const pr of worldState.projectiles) {
         ctx.save();
         ctx.translate(pr.x, pr.y);
@@ -2995,7 +3223,6 @@ function renderWorld(dt) {
             ctx.rotate(pr.angle);
             ctx.fillStyle = 'rgba(250, 204, 21, 0.45)';
             ctx.fillRect(-32, -2, 30, 4);
-            // 三叉飛雷神苦無刃
             ctx.fillStyle = '#facc15';
             ctx.fillRect(-4, -5, 16, 10);
             ctx.fillStyle = '#ffffff';
@@ -3023,7 +3250,6 @@ function renderWorld(dt) {
         ctx.restore();
     }
 
-    // 招式特效渲染
     for (let i = visualEffects.length - 1; i >= 0; i--) {
         const fx = visualEffects[i];
         fx.life -= dt;
@@ -3127,7 +3353,6 @@ function renderWorld(dt) {
         ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), 5, 3);
     }
 
-    // 手機觸控浮動虛擬搖桿
     if (touchJoy.activeId !== null) {
         ctx.save();
         ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
@@ -3162,7 +3387,6 @@ function drawPlayerEntity(p) {
     const px = p.rx ?? p.x;
     const py = p.ry ?? p.y;
 
-    // 鹿丸影子模仿術黑影領域
     if (!p.downed && p.shadowLv > 0) {
         const r = p.shadowR || 135;
         ctx.save();
@@ -3246,7 +3470,6 @@ function drawPlayerEntity(p) {
     ctx.fillStyle = '#22c55e';
     ctx.fillRect(Math.round(px - bw / 2), Math.round(py + 43), Math.round(bw * (p.hp / p.maxHp)), 5);
 
-    // 卡卡西雷切球 / 佐助千鳥流環繞雷刃
     if (!p.downed && p.raikiriLv > 0) {
         const time = renderTime * (p.raikiriSpd || 3.4);
         const cnt = p.raikiriCnt || 2;
