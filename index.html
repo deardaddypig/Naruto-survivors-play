@@ -623,8 +623,79 @@ function buildPropAndItemSprites() {
     const scr = new PixelBuilder(22, 18);
     scr.rect(2, 6, 3, 6, '#eab308'); scr.rect(17, 6, 3, 6, '#eab308'); scr.px(2, 7, '#fef08a'); scr.px(19, 7, '#fef08a');
     scr.rect(5, 4, 12, 10, '#15803d'); scr.rect(5, 5, 12, 8, '#22c55e'); scr.line(6, 6, 16, 6, '#86efac');
-    scr.rect(10, 4, 2, 10, '#dc2626'); scr.px(9, 9, '#f87171'); scr.px(12, 9, '#f87171');
+scr.rect(10, 4, 2, 10, '#dc2626'); scr.px(9, 9, '#f87171'); scr.px(12, 9, '#f87171');
     scr.addOutline('#0a180d'); ITEM_SPRITES.scroll = scr.bake(2).right;
+
+    buildTerrainSprites();
+}
+
+const TERRAIN_SPRITES = {};
+function buildTerrainSprites() {
+    const size = 96, half = size / 2;
+
+    // 1. 16-bit 點陣泥地沼澤（不規則邊緣 + 網點漸層 + 濕潤反光 + 碎石）
+    const mudPb = new PixelBuilder(size, size);
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const dx = x - half, dy = (y - half) * 1.12;
+            const ang = Math.atan2(dy, dx);
+            const dist = Math.hypot(dx, dy);
+            const wobble = Math.sin(ang * 3 + 0.4) * 3.4 + Math.cos(ang * 5 + 1.1) * 2.2 + Math.sin(ang * 8) * 1.1;
+            const maxR = 40 + wobble;
+            if (dist > maxR) continue;
+
+            const ratio = dist / maxR;
+            const dither = (x + y) % 2 === 0;
+            const noise = Math.sin(x * 0.45 + y * 0.37) * Math.cos(x * 0.23 - y * 0.51);
+
+            if (ratio > 0.91) {
+                mudPb.px(x, y, dither ? '#291507' : '#1b3319');
+            } else if (ratio > 0.78) {
+                mudPb.px(x, y, dither ? '#45220a' : '#361906');
+            } else if (ratio > 0.48) {
+                mudPb.px(x, y, noise > 0.25 ? '#753d15' : (dither ? '#5c2e0e' : '#4f260b'));
+            } else {
+                // 中央深泥漿＋濕滑高光水漬
+                if (noise > 0.62 && dither) mudPb.px(x, y, '#a16207');
+                else if (noise > 0.48) mudPb.px(x, y, '#854d0e');
+                else mudPb.px(x, y, dither ? '#422008' : '#381a06');
+            }
+        }
+    }
+    // 泥灘邊緣點綴小石子與草叢
+    [[22, 26], [72, 30], [28, 70], [68, 66], [48, 16]].forEach(([px, py]) => {
+        mudPb.rect(px, py, 2, 2, '#64748b');
+        mudPb.px(px, py, '#94a3b8');
+    });
+    TERRAIN_SPRITES.mud = mudPb.bake(3).right;
+
+    // 2. 16-bit 劇毒瘴氣沼澤池（紫綠交織毒液脈絡 + 半透明霧化外緣）
+    const poiPb = new PixelBuilder(size, size);
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const dx = x - half, dy = y - half;
+            const ang = Math.atan2(dy, dx);
+            const dist = Math.hypot(dx, dy);
+            const wobble = Math.sin(ang * 4 + 0.7) * 3.2 + Math.cos(ang * 6 - 0.5) * 2.1;
+            const maxR = 41 + wobble;
+            if (dist > maxR) continue;
+
+            const ratio = dist / maxR;
+            const dither = (x + y) % 2 === 0;
+            const vein = Math.sin(x * 0.24 + Math.cos(y * 0.22) * 2.2);
+
+            if (ratio > 0.88) {
+                if (dither) poiPb.px(x, y, 'rgba(88, 28, 135, 0.42)');
+            } else if (ratio > 0.65) {
+                poiPb.px(x, y, vein > 0.45 ? 'rgba(16, 185, 129, 0.52)' : 'rgba(59, 7, 100, 0.58)');
+            } else {
+                if (vein > 0.58) poiPb.px(x, y, dither ? 'rgba(74, 222, 128, 0.72)' : 'rgba(16, 185, 129, 0.65)');
+                else if (vein < -0.55) poiPb.px(x, y, 'rgba(168, 85, 247, 0.65)');
+                else poiPb.px(x, y, dither ? 'rgba(46, 16, 101, 0.68)' : 'rgba(30, 27, 75, 0.68)');
+            }
+        }
+    }
+    TERRAIN_SPRITES.poison = poiPb.bake(3).right;
 }
 
 function buildNarutoFrame(f) {
@@ -1919,34 +1990,56 @@ function drawVisibleTerrains() {
             const t = getSectorTerrain(sx, sy);
             if (!t) continue;
             ctx.save();
-            if (t.kind === 'mud') {
-                ctx.fillStyle = '#451a03';
-                ctx.beginPath(); ctx.ellipse(t.x, t.y, t.r, t.r * 0.82, 0, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#78350f';
-                ctx.beginPath(); ctx.ellipse(t.x, t.y, t.r * 0.84, t.r * 0.68, 0, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#92400e';
-                ctx.beginPath(); ctx.ellipse(t.x - 12, t.y - 6, t.r * 0.45, t.r * 0.35, 0, 0, Math.PI * 2); ctx.fill();
-            } else if (t.kind === 'poison') {
-                const pulse = Math.sin(renderTime * 3 + sx) * 4;
-                ctx.fillStyle = 'rgba(16, 185, 129, 0.22)';
-                ctx.beginPath(); ctx.arc(t.x, t.y, t.r + pulse, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = 'rgba(126, 34, 206, 0.18)';
-                ctx.beginPath(); ctx.arc(t.x, t.y, (t.r + pulse) * 0.68, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([8, 6]);
-                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.stroke();
-                ctx.setLineDash([]);
+            if (t.kind === 'mud' && TERRAIN_SPRITES.mud) {
+                const drawSize = t.r * 2.28;
+                ctx.drawImage(TERRAIN_SPRITES.mud, Math.round(t.x - drawSize / 2), Math.round(t.y - drawSize / 2), Math.round(drawSize), Math.round(drawSize));
+            } else if (t.kind === 'poison' && TERRAIN_SPRITES.poison) {
+                const drawSize = t.r * 2.25;
+                ctx.drawImage(TERRAIN_SPRITES.poison, Math.round(t.x - drawSize / 2), Math.round(t.y - drawSize / 2), Math.round(drawSize), Math.round(drawSize));
 
+                // 動態飄浮點陣毒霧雲團（紫綠交錯）
+                for (let c = 0; c < 6; c++) {
+                    const orbitAng = renderTime * 0.55 + c * 1.05 + sx;
+                    const distR = t.r * (0.28 + (c % 3) * 0.22);
+                    const cx = t.x + Math.cos(orbitAng) * distR;
+                    const cy = t.y + Math.sin(orbitAng * 0.85) * distR * 0.85;
+                    const cloudR = 16 + Math.sin(renderTime * 2.5 + c) * 4;
+                    ctx.fillStyle = c % 2 === 0 ? 'rgba(147, 51, 234, 0.22)' : 'rgba(16, 185, 129, 0.20)';
+                    ctx.fillRect(Math.round(cx - cloudR), Math.round(cy - cloudR * 0.7), Math.round(cloudR * 2), Math.round(cloudR * 1.4));
+                    ctx.fillRect(Math.round(cx - cloudR * 0.7), Math.round(cy - cloudR), Math.round(cloudR * 1.4), Math.round(cloudR * 2));
+                }
+
+                // 上升並爆開的點陣毒氣泡泡
                 for (let b = 0; b < 5; b++) {
-                    const phase = (renderTime * 0.7 + b * 0.21 + sx) % 1;
-                    const bx = t.x + Math.cos(b * 2.1 + sy) * (t.r * 0.55);
-                    const by = t.y + (0.5 - phase) * (t.r * 0.8);
-                    ctx.fillStyle = b % 2 === 0 ? 'rgba(167, 243, 208, 0.7)' : 'rgba(216, 180, 254, 0.7)';
-                    ctx.fillRect(Math.round(bx - 3), Math.round(by - 3), 6, 6);
+                    const phase = (renderTime * 0.65 + b * 0.23 + sy) % 1;
+                    const bx = t.x + Math.cos(b * 2.4 + sx) * (t.r * 0.52);
+                    const by = t.y + (0.45 - phase) * (t.r * 0.75);
+                    if (phase > 0.82) {
+                        // 泡泡破裂十字閃光
+                        ctx.fillStyle = 'rgba(167, 243, 208, 0.75)';
+                        ctx.fillRect(Math.round(bx - 5), Math.round(by - 1), 10, 2);
+                        ctx.fillRect(Math.round(bx - 1), Math.round(by - 5), 2, 10);
+                    } else {
+                        ctx.fillStyle = b % 2 === 0 ? '#34d399' : '#c084fc';
+                        ctx.fillRect(Math.round(bx - 3), Math.round(by - 3), 6, 6);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(Math.round(bx - 2), Math.round(by - 2), 2, 2);
+                    }
                 }
             }
             ctx.restore();
+        }
+    }
+
+    // 角色在泥地行走時濺起點陣泥點水花
+    if (gameState === 'PLAYING') {
+        for (const p of worldState.players) {
+            if (p.downed || !p.moving) continue;
+            const px = p.rx ?? p.x, py = p.ry ?? p.y;
+            if (getTerrainStatusAt(px, py).inMud && Math.random() < 0.28) {
+                const a = Math.random() * Math.PI * 2, sp = 18 + Math.random() * 35;
+                particles.push({ x: px + (Math.random() - 0.5) * 14, y: py + 32, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 15, color: Math.random() > 0.5 ? '#78350f' : '#a16207', size: 4, life: 0.28, maxLife: 0.28 });
+            }
         }
     }
 }
