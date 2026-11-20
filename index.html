@@ -1526,10 +1526,10 @@ function stepSolo(dt) {
         s.enemies.push({ id: s.nextId++, type: key, isBoss: true, bossTitle: title, x: bx, y: by, rx: bx, ry: by, vx: 0, vy: 0, facing: 'left', hp: st.hp, maxHp: st.hp, speed: st.speed, damage: st.damage, radius: st.radius, xp: st.xp, hitTimer: 0, slowTimer: 0, slowFactor: 0.65, skillTimer1: 2.2, skillTimer2: 4.5, skillTimer3: 7.0, pullTimer: 0 });
         showBossBanner(`⚠️ 強敵來襲：${title} 登場！`, st.alertColor); playSfx('rasengan');
     };
-    if (s.t >= 180 && !s.bossSpawned.gaara) spawnSoloBoss('gaara', '砂瀑之我愛羅', { hp: 3000, speed: 100, damage: 23, radius: 34, xp: 60, alertColor: '#f59e0b' });
-    if (s.t >= 300 && !s.bossSpawned.orochimaru) spawnSoloBoss('orochimaru', '傳說三忍・大蛇丸', { hp: 5000, speed: 105, damage: 29, radius: 34, xp: 110, alertColor: '#a855f7' });
-    if (s.t >= 480 && !s.bossSpawned.itachi) spawnSoloBoss('itachi', '曉・宇智波鼬', { hp: 9500, speed: 110, damage: 34, radius: 34, xp: 180, alertColor: '#ef4444' });
-    if (s.t >= 600 && !s.bossSpawned.pain) spawnSoloBoss('pain', '神・佩恩（長門）', { hp: 38000, speed: 120, damage: 50, radius: 38, xp: 400, alertColor: '#c084fc' });
+    if (s.t >= 180 && !s.bossSpawned.gaara) spawnSoloBoss('gaara', '砂瀑之我愛羅', { hp: 3000, speed: 100, damage: 30, radius: 34, xp: 60, alertColor: '#f59e0b' });
+    if (s.t >= 300 && !s.bossSpawned.orochimaru) spawnSoloBoss('orochimaru', '傳說三忍・大蛇丸', { hp: 6600, speed: 105, damage: 49, radius: 34, xp: 110, alertColor: '#a855f7' });
+    if (s.t >= 480 && !s.bossSpawned.itachi) spawnSoloBoss('itachi', '曉・宇智波鼬', { hp: 12500, speed: 110, damage: 34, radius: 54, xp: 180, alertColor: '#ef4444' });
+    if (s.t >= 600 && !s.bossSpawned.pain) spawnSoloBoss('pain', '神・佩恩（長門）', { hp: 38000, speed: 120, damage: 50, radius: 68, xp: 400, alertColor: '#c084fc' });
 
     const { dx, dy } = getMoveVector();
     p.moving = (dx !== 0 || dy !== 0);
