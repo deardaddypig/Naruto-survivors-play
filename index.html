@@ -29,6 +29,7 @@
         #weapon-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
         .w-badge { background: #0f172a; border: 1px solid #64748b; padding: 2px 5px; font-size: 10px; color: #38bdf8; font-weight: bold; }
         .w-badge.buff { border-color: #facc15; color: #fef08a; background: #422006; }
+        .w-badge.debuff { border-color: #ef4444; color: #fca5a5; background: #450a0a; }
         #teammates-hud { position: absolute; top: 114px; left: 14px; display: flex; flex-direction: column; gap: 6px; }
         .ally-card { background: rgba(15, 23, 42, 0.85); border: 2px solid #38bdf8; padding: 5px 10px; font-size: 12px; min-width: 175px; box-shadow: 3px 3px 0 #000; }
         .ally-card.downed { border-color: #ef4444; animation: blinkDown 0.8s infinite alternate; }
@@ -66,11 +67,7 @@
         .char-card.selected { border-color: #fbbf24; background: #283548; box-shadow: 0 0 12px rgba(251, 191, 36, 0.4), 3px 3px 0 #000; }
         .char-card.hokage-awaken { background: linear-gradient(180deg, #451a03 0%, #1e1b2e 100%); border-color: #facc15; box-shadow: 0 0 16px rgba(250, 204, 21, 0.65), 3px 3px 0 #000; }
         .char-card.flipping { animation: cardFlip3D 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes cardFlip3D {
-            0% { transform: rotateY(0deg) scale(1); }
-            50% { transform: rotateY(180deg) scale(1.08); }
-            100% { transform: rotateY(360deg) scale(1); }
-        }
+        @keyframes cardFlip3D { 0% { transform: rotateY(0deg) scale(1); } 50% { transform: rotateY(180deg) scale(1.08); } 100% { transform: rotateY(360deg) scale(1); } }
         .char-card.locked { background: #0f131c; border-color: #334155; cursor: not-allowed; }
         .char-card.locked:hover { transform: none; border-color: #ef4444; }
         @keyframes shakeCard { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -154,7 +151,7 @@
     <div id="ui-layer">
         <div id="xp-container">
             <div id="xp-bar"></div>
-            <div id="xp-label">TEAM CHAKRA EXP</div>
+            <div id="xp-label">EXP 經驗值</div>
         </div>
         <div id="hud-header">
             <div id="player-card" class="retro-panel">
@@ -181,7 +178,7 @@
                     <div id="ping-badge">PING: --</div>
                 </div>
                 <div class="hud-btn-group">
-                    <button id="btn-zoom" class="hud-ctrl-btn" onclick="toggleCameraZoom()">視野: 近</button>
+                    <button id="btn-zoom" class="hud-ctrl-btn" onclick="toggleCameraZoom()">近鏡</button>
                     <button id="btn-sfx" class="hud-ctrl-btn" onclick="toggleSfx()">SFX: ON</button>
                     <button id="btn-pause" class="hud-ctrl-btn pause-btn" onclick="togglePauseGame()">PAUSE</button>
                 </div>
@@ -221,15 +218,14 @@
         <div class="badge-sub">NARUTO SURVIVORS ONLINE</div>
         <h1>NARUTO SURVIVORS</h1>
         <p style="color:#94a3b8; margin:0 0 6px; font-size:12px;">
-            累計殺敵: <b id="total-kills-display" style="color:#fbbf24;">0</b> • 單局最長生存: <b id="best-time-display" style="color:#4ade80;">00:00</b>
+            累計殺敵: <b id="total-kills-display" style="color:#fbbf24;">0</b> • 單局最長生存: <b id="best-time-display" style="color:#4ade80;">00:00</b> • 泥地減速與毒氣！
         </p>
 
         <div class="char-grid">
-            <!-- 漩渦鳴人 (長按 3 秒翻牌覺醒為：漩渦鳴人：七代火影) -->
             <div class="char-card selected" id="card-naruto" oncontextmenu="event.preventDefault();">
                 <canvas class="char-preview" id="prev-naruto" width="80" height="88"></canvas>
                 <div class="char-name" id="naruto-card-name">漩渦鳴人</div>
-                <div class="char-role" id="naruto-card-role">全能 • 影分身與螺旋丸</div>
+                <div class="char-role" id="naruto-card-role">全能 • 3秒覺醒七代火影</div>
                 <div class="char-desc" id="naruto-card-desc">手裏劍連射，可召喚多重影分身與螺旋丸領域</div>
                 <div id="naruto-hold-bar"></div>
             </div>
@@ -288,7 +284,7 @@
 
         <div class="server-bar">
             <span>忍者暱稱:</span>
-            <input type="text" id="input-name" class="retro-input" style="width:130px;" maxlength="10" value="木葉忍者">
+            <input type="text" id="input-name" class="retro-input" style="width:155px;" maxlength="10" placeholder="請輸入你的名稱">
             <span id="conn-status" style="color:#38bdf8; font-weight:bold;">● 正在連線伺服器...</span>
         </div>
 
@@ -312,7 +308,7 @@
     </div>
 
     <div id="menu-levelup" class="modal" style="display:none;">
-        <div class="badge-sub" style="background:#0284c7;">TEAM CHAKRA AWAKENING</div>
+        <div class="badge-sub" style="background:#0284c7;">CHAKRA AWAKENING</div>
         <h2 id="levelup-title">LEVEL UP! 忍術覺醒</h2>
         <p id="levelup-wait-msg" style="color:#cbd5e1; margin:0; font-size:13px;">選擇一項忍術或體術強化：</p>
         <div id="upgrade-options"></div>
@@ -320,7 +316,7 @@
 
     <div id="menu-gameover" class="modal" style="display:none;">
         <div class="badge-sub">MISSION COMPLETE // BATTLE REPORT</div>
-        <h1>全隊查克拉耗盡</h1>
+        <h1>全隊死亡</h1>
         <div class="summary-grid">
             <div class="summary-cell"><div class="label">存活時間</div><div class="val" id="go-time">00:00</div></div>
             <div class="summary-cell"><div class="label">隊伍等級</div><div class="val" id="go-level">1</div></div>
@@ -328,14 +324,14 @@
         </div>
         <div class="ranking-section">
             <div class="ranking-header">
-                <span>🏆 本局忍者擊殺排名榜</span>
+                <span>🏆 本局擊殺排名榜</span>
                 <span id="go-unlock-hint" style="font-size:11px; color:#fbbf24;"></span>
             </div>
             <div id="go-match-ranking"></div>
         </div>
         <div class="ranking-section">
             <div class="ranking-header">
-                <span>🌍 全服所有玩家防衛英雄榜 (TOP 10)</span>
+                <span>🌍 全服玩家防衛英雄榜 (TOP 10)</span>
                 <span style="font-size:11px; color:#94a3b8;">全體玩家即時同步排名</span>
             </div>
             <div id="go-history-ranking"></div>
@@ -344,6 +340,58 @@
     </div>
 
 <script>
+/**
+ * ============================================================================
+ * 【自訂遊戲數值設定區】你可以直接修改以下數字來調整攻擊力、回復量與地圖效果
+ * ============================================================================
+ */
+const GAME_BALANCE_CONFIG = {
+    maxEnemies: 100,              // 【敵人上限】場上最多同時存在的敵人數量（防止手機發熱）
+    stopSpawnDuringBoss: true,    // 【BOSS 機制】true = BOSS 出現期間暫停生成普通小怪，直到擊敗 BOSS
+
+    // --- 地圖特殊地質設定 ---
+    mudSpeedMultiplier: 0.45,     // 【泥地】移動速度倍率（0.45 代表只剩 45% 移動速度）
+    poisonDamagePerSec: 12,       // 【毒氣區】站在毒氣範圍內每秒扣除的血量
+
+    // --- 道具與仙術回復數值 ---
+    scrollHealAmount: 35,         // 【書卷：查克拉爆發】立即回復的生命值
+    hokageSageHealRatio: 0.1,    // 【七代火影鳴人】仙術自動回復最大血量的比例（0.20 = 20%）
+    hokageSageHealInterval: 5.0,  // 【七代火影鳴人】仙術自動回血間隔（秒）
+
+    // --- 各角色初始【攻擊力 (damage)】、【冷卻秒數 (cooldown)】與【每秒自然回血 (regen)】 ---
+    characters: {
+        naruto:        { maxHp: 100, speed: 225, damage: 20, cooldown: 0.95, count: 1, pierce: 1, regen: 0,   clones: 0, weapon: 'shuriken' },        // 漩渦鳴人
+        naruto_hokage: { maxHp: 150, speed: 255, damage: 37, cooldown: 0.85, count: 8, pierce: 3, regen: 1.0, clones: 1, weapon: 'rasenshuriken' },   // 漩渦鳴人：七代火影 (初始8方向攻擊)
+        kakashi:       { maxHp: 115,  speed: 245, damage: 28, cooldown: 1.05, count: 1, pierce: 1, regen: 0,   clones: 0, weapon: 'kunai' },           // 旗木卡卡西
+        jiraiya:       { maxHp: 135, speed: 200, damage: 16, cooldown: 1.35, count: 3, pierce: 1, regen: 0,   clones: 0, weapon: 'needle' },          // 自來也
+        sasuke:        { maxHp: 100, speed: 240, damage: 24, cooldown: 0.92, count: 1, pierce: 1, regen: 0,   clones: 0, weapon: 'chidori_senbon' },  // 宇智波佐助
+        sakura:        { maxHp: 100, speed: 215, damage: 27, cooldown: 1.15, count: 1, pierce: 1, regen: 0.5, clones: 0, weapon: 'cherry_kunai' },    // 春野櫻 (每秒自然回血 0.5)
+        shikamaru:     { maxHp: 105, speed: 220, damage: 22, cooldown: 1.10, count: 1, pierce: 1, regen: 0,   clones: 0, weapon: 'trench_knife' },    // 奈良鹿丸
+        minato:        { maxHp: 135, speed: 265, damage: 29, cooldown: 0.82, count: 2, pierce: 1, regen: 0,   clones: 0, weapon: 'hiraishin_kunai' }, // 波風水門
+        tobirama:      { maxHp: 145, speed: 250, damage: 35, cooldown: 0.85, count: 1, pierce: 4, regen: 1.0, clones: 0, weapon: 'suidanha' },        // 千手扉間 (每秒自然回血 1.0)
+        hashirama:     { maxHp: 160, speed: 245, damage: 38, cooldown: 0.80, count: 2, pierce: 5, regen: 1.5, clones: 0, weapon: 'wood_root' }        // 千手柱間 (每秒自然回血 1.5)
+    },
+
+    // --- 技能與額外忍術基礎【攻擊力 (damage)】與【治療量 (heal)】 ---
+    skills: {
+        rasenganDamage: 13,       // 螺旋丸領域單次傷害
+        bijuuBombDamage: 50,      // 七代火影：尾獸玉爆炸傷害
+        raikiriDamage: 18,        // 卡卡西/佐助：環繞雷球/雷刃傷害
+        lightningDamage: 26,      // 卡卡西：連鎖紫電傷害
+        fireballDamage: 34,       // 自來也：火遁大炎彈爆炸傷害
+        amaterasuDamage: 28,      // 佐助：天照黑炎傷害
+        cherrySmashDamage: 32,    // 春野櫻：櫻花衝怪力震擊傷害
+        byakugouHeal: 14,         // 春野櫻：百豪掌仙術治療量
+        shadowBindDamage: 12,     // 奈良鹿丸：影子模仿術領域傷害
+        shadowStitchDamage: 25,   // 奈良鹿丸：影子縫合術傷害
+        hiraishinDamage: 30,      // 波風水門：飛雷神二段閃光斬傷害
+        waterDragonDamage: 42,    // 千手扉間：水遁水龍彈傷害
+        tandemBombsDamage: 36,    // 千手扉間：互乘起爆符傷害
+        woodDragonDamage: 32,     // 千手柱間：木龍之術傷害
+        senpoBuddhaDamage: 45     // 千手柱間：仙法木遁真數千手傷害
+    }
+};
+
 const SERVER_URL = 'https://naruto-survivors.onrender.com';
 const MINATO_UNLOCK_KILLS = 1000;
 const TOBIRAMA_UNLOCK_SEC = 300;
@@ -356,6 +404,43 @@ let lastSyncedOnlineKills = 0;
 let serverGlobalLeaderboard = [];
 let lastRecordedEntryId = null;
 let isSeventhHokageFlipped = false;
+
+const TERRAIN_SECTOR_SIZE = 720;
+
+function getSectorTerrain(sx, sy) {
+    if (sx === 0 && sy === 0) return null;
+    const h1 = Math.sin(sx * 127.1 + sy * 311.7) * 43758.5453;
+    const r1 = h1 - Math.floor(h1);
+    if (r1 > 0.56) return null;
+
+    const h2 = Math.sin(sx * 269.5 + sy * 183.3) * 28461.7123;
+    const r2 = h2 - Math.floor(h2);
+    const h3 = Math.sin(sx * 419.2 + sy * 371.9) * 19283.3412;
+    const r3 = h3 - Math.floor(h3);
+
+    const kind = r1 < 0.31 ? 'mud' : 'poison';
+    const x = sx * TERRAIN_SECTOR_SIZE + 180 + r2 * (TERRAIN_SECTOR_SIZE - 360);
+    const y = sy * TERRAIN_SECTOR_SIZE + 180 + r3 * (TERRAIN_SECTOR_SIZE - 360);
+    const r = kind === 'mud' ? (115 + r2 * 45) : (95 + r3 * 40);
+    return { kind, x, y, r, key: `${sx}_${sy}` };
+}
+
+function getTerrainStatusAt(x, y) {
+    const csx = Math.floor(x / TERRAIN_SECTOR_SIZE);
+    const csy = Math.floor(y / TERRAIN_SECTOR_SIZE);
+    let inMud = false, inPoison = false;
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            const t = getSectorTerrain(csx + dx, csy + dy);
+            if (!t) continue;
+            if (Math.hypot(x - t.x, y - t.y) <= t.r) {
+                if (t.kind === 'mud') inMud = true;
+                else if (t.kind === 'poison') inPoison = true;
+            }
+        }
+    }
+    return { inMud, inPoison };
+}
 
 function isCharUnlocked(charId) {
     if (charId === 'minato') return accumulatedKills >= MINATO_UNLOCK_KILLS;
@@ -385,117 +470,58 @@ function updateBestSurvivalTime(currentSec) {
 }
 
 function updateNarutoCardDisplay() {
-    const card = document.getElementById('card-naruto');
-    const c = document.getElementById('prev-naruto');
-    const nameEl = document.getElementById('naruto-card-name');
-    const roleEl = document.getElementById('naruto-card-role');
-    const descEl = document.getElementById('naruto-card-desc');
+    const card = document.getElementById('card-naruto'), c = document.getElementById('prev-naruto'), nameEl = document.getElementById('naruto-card-name'), roleEl = document.getElementById('naruto-card-role'), descEl = document.getElementById('naruto-card-desc');
     if (!card || !c || !SPRITES.naruto.length || !SPRITES.naruto_hokage.length) return;
-
-    const cx = c.getContext('2d');
-    cx.imageSmoothingEnabled = false;
-    cx.clearRect(0, 0, c.width, c.height);
-
+    const cx = c.getContext('2d'); cx.imageSmoothingEnabled = false; cx.clearRect(0, 0, c.width, c.height);
     if (isSeventhHokageFlipped) {
         card.classList.add('hokage-awaken');
-        nameEl.innerText = '漩渦鳴人：七代火影';
-        nameEl.style.color = '#fef08a';
-        roleEl.innerText = '六道仙人 • 八方螺旋手裏劍';
-        roleEl.style.color = '#fb923c';
-        descEl.innerText = '初始8方向攻擊＋仙術回血20%＋最多4個影分身';
-        const img = SPRITES.naruto_hokage[0].right;
-        cx.drawImage(img, Math.round((c.width - img.width) / 2), Math.round((c.height - img.height) / 2));
+        nameEl.innerText = '漩渦鳴人：七代火影'; nameEl.style.color = '#fef08a';
+        roleEl.innerText = '六道仙人 • 八方螺旋手裏劍'; roleEl.style.color = '#fb923c';
+        descEl.innerText = '初始8方向攻擊＋仙術回血10%＋最多4個影分身';
+        const img = SPRITES.naruto_hokage[0].right; cx.drawImage(img, Math.round((c.width - img.width) / 2), Math.round((c.height - img.height) / 2));
     } else {
         card.classList.remove('hokage-awaken');
-        nameEl.innerText = '漩渦鳴人';
-        nameEl.style.color = '#fbbf24';
-        roleEl.innerText = '全能 • 影分身與螺旋丸';
-        roleEl.style.color = '#38bdf8';
+        nameEl.innerText = '漩渦鳴人'; nameEl.style.color = '#fbbf24';
+        roleEl.innerText = '全能 • 3秒覺醒七代火影'; roleEl.style.color = '#38bdf8';
         descEl.innerText = '手裏劍連射，可召喚多重影分身與螺旋丸領域';
-        const img = SPRITES.naruto[0].right;
-        cx.drawImage(img, Math.round((c.width - img.width) / 2), Math.round((c.height - img.height) / 2));
+        const img = SPRITES.naruto[0].right; cx.drawImage(img, Math.round((c.width - img.width) / 2), Math.round((c.height - img.height) / 2));
     }
 }
 
 function setupNarutoLongPress() {
-    const card = document.getElementById('card-naruto');
-    const bar = document.getElementById('naruto-hold-bar');
+    const card = document.getElementById('card-naruto'), bar = document.getElementById('naruto-hold-bar');
     if (!card || !bar) return;
-
-    let holdTimer = null;
-    let holdStart = 0;
-    let triggered = false;
+    let holdTimer = null, holdStart = 0, triggered = false;
     const HOLD_DURATION = 3000;
-
-    const cancelHold = () => {
-        if (holdTimer) {
-            clearInterval(holdTimer);
-            holdTimer = null;
-        }
-        bar.style.width = '0%';
-    };
-
+    const cancelHold = () => { if (holdTimer) { clearInterval(holdTimer); holdTimer = null; } bar.style.width = '0%'; };
     const startHold = (e) => {
         if (e.type === 'mousedown' && e.button !== 0) return;
-        initAudio();
-        triggered = false;
-        holdStart = performance.now();
-        cancelHold();
-
+        initAudio(); triggered = false; holdStart = performance.now(); cancelHold();
         holdTimer = setInterval(() => {
             const elapsed = performance.now() - holdStart;
-            const pct = Math.min(100, (elapsed / HOLD_DURATION) * 100);
-            bar.style.width = `${pct}%`;
-
+            bar.style.width = `${Math.min(100, (elapsed / HOLD_DURATION) * 100)}%`;
             if (elapsed >= HOLD_DURATION && !triggered) {
-                triggered = true;
-                cancelHold();
-                isSeventhHokageFlipped = !isSeventhHokageFlipped;
-
-                card.classList.remove('flipping');
-                void card.offsetWidth;
-                card.classList.add('flipping');
-
-                updateNarutoCardDisplay();
-                playSfx('levelup');
+                triggered = true; cancelHold(); isSeventhHokageFlipped = !isSeventhHokageFlipped;
+                card.classList.remove('flipping'); void card.offsetWidth; card.classList.add('flipping');
+                updateNarutoCardDisplay(); playSfx('levelup');
                 chooseCharacter(isSeventhHokageFlipped ? 'naruto_hokage' : 'naruto');
             }
         }, 25);
     };
-
-    const endHold = () => {
-        const wasHolding = (holdTimer !== null);
-        cancelHold();
-        if (wasHolding && !triggered) {
-            chooseCharacter(isSeventhHokageFlipped ? 'naruto_hokage' : 'naruto');
-        }
-    };
-
-    card.addEventListener('mousedown', startHold);
-    card.addEventListener('mouseup', endHold);
-    card.addEventListener('mouseleave', cancelHold);
-
-    card.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        startHold(e);
-    }, { passive: false });
-    card.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        endHold();
-    }, { passive: false });
+    const endHold = () => { const wasHolding = (holdTimer !== null); cancelHold(); if (wasHolding && !triggered) chooseCharacter(isSeventhHokageFlipped ? 'naruto_hokage' : 'naruto'); };
+    card.addEventListener('mousedown', startHold); card.addEventListener('mouseup', endHold); card.addEventListener('mouseleave', cancelHold);
+    card.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(e); }, { passive: false });
+    card.addEventListener('touchend', (e) => { e.preventDefault(); endHold(); }, { passive: false });
     card.addEventListener('touchcancel', cancelHold);
 }
 
 function refreshHiddenCharsUI() {
-    const totalEl = document.getElementById('total-kills-display');
-    if (totalEl) totalEl.innerText = accumulatedKills;
-    const bestEl = document.getElementById('best-time-display');
-    if (bestEl) bestEl.innerText = formatTimeStr(bestSurvivalSec);
+    const totalEl = document.getElementById('total-kills-display'); if (totalEl) totalEl.innerText = accumulatedKills;
+    const bestEl = document.getElementById('best-time-display'); if (bestEl) bestEl.innerText = formatTimeStr(bestSurvivalSec);
     if (!SPRITES.minato.length || !SPRITES.tobirama.length || !SPRITES.hashirama.length) return;
-
     renderHiddenCard({ id: 'minato', unlocked: isCharUnlocked('minato'), name: '波風水門', role: '金色閃光 • 飛雷神與螺旋丸', desc: '極速飛雷神苦無連射，發動金色閃光瞬殺斬擊', lockRole: '🔒 累計擊殺 1000 敵人解鎖', lockDesc: `解鎖進度: ${accumulatedKills} / ${MINATO_UNLOCK_KILLS}`, pct: Math.min(100, (accumulatedKills / MINATO_UNLOCK_KILLS) * 100) });
-    renderHiddenCard({ id: 'tobirama', unlocked: isCharUnlocked('tobirama'), name: '千手扉間', role: '水遁宗師 • 水斷波與互乘起爆符', desc: '高壓穿透水斷波，召喚水龍彈與起爆符連鎖爆破', lockRole: '🔒 單局生存滿 5 分鐘解鎖', lockDesc: `最長紀錄: ${formatTimeStr(bestSurvivalSec)} / 15:00`, pct: Math.min(100, (bestSurvivalSec / TOBIRAMA_UNLOCK_SEC) * 100) });
-    renderHiddenCard({ id: 'hashirama', unlocked: isCharUnlocked('hashirama'), name: '千手柱間', role: '忍者之神 • 樹界降誕與真數千手', desc: '最強體質＋木龍吸血，召喚金色千手觀音轟擊全場', lockRole: '🔒 單局生存滿 10 分鐘解鎖', lockDesc: `最長紀錄: ${formatTimeStr(bestSurvivalSec)} / 30:00`, pct: Math.min(100, (bestSurvivalSec / HASHIRAMA_UNLOCK_SEC) * 100) });
+    renderHiddenCard({ id: 'tobirama', unlocked: isCharUnlocked('tobirama'), name: '千手扉間', role: '水遁宗師 • 水斷波與互乘起爆符', desc: '高壓穿透水斷波，召喚水龍彈與起爆符連鎖爆破', lockRole: '🔒 單局生存滿 5 分鐘解鎖', lockDesc: `最長紀錄: ${formatTimeStr(bestSurvivalSec)} / 5:00`, pct: Math.min(100, (bestSurvivalSec / TOBIRAMA_UNLOCK_SEC) * 100) });
+    renderHiddenCard({ id: 'hashirama', unlocked: isCharUnlocked('hashirama'), name: '千手柱間', role: '忍者之神 • 樹界降誕與真數千手', desc: '最強體質＋木龍吸血，召喚金色千手觀音轟擊全場', lockRole: '🔒 單局生存滿 10 分鐘解鎖', lockDesc: `最長紀錄: ${formatTimeStr(bestSurvivalSec)} / 10:00`, pct: Math.min(100, (bestSurvivalSec / HASHIRAMA_UNLOCK_SEC) * 100) });
 }
 
 function renderHiddenCard(cfg) {
@@ -619,65 +645,21 @@ function buildNarutoFrame(f) {
     pb.addOutline('#120e1c'); return pb.bake(2);
 }
 
-// 特別角色：漩渦鳴人：七代火影（短金髮＋六道仙人十字瞳＋紅焰白底七代目火影御神袍＋黑橘忍服）
 function buildNarutoHokageFrame(f) {
     const pb = new PixelBuilder(40, 44), bob = (f === 1 || f === 3) ? -1 : 0, ls = f === 0 ? -3 : f === 2 ? 3 : 0, cw = [0, 2, 0, -2][f];
-
-    // 1. 飄揚的白色【七代目火影御神袍】＋紅色立領＋下擺紅色火焰紋
-    for (let y = 19; y <= 37; y++) {
-        const hw = 6 + Math.floor((y - 19) * 0.35);
-        pb.rect(20 - hw - cw * 0.5, y + bob, hw * 2, 1, '#f8fafc');
-        pb.rect(20 - hw - cw * 0.5, y + bob, 2, 1, '#cbd5e1');
-    }
-    // 紅色火影高領
-    pb.rect(14, 18 + bob, 12, 3, '#dc2626');
-    pb.line(15, 18 + bob, 24, 18 + bob, '#f87171');
-    // 下擺經典紅焰三角紋
-    for (let x = 10; x <= 29; x += 4) {
-        pb.line(x - cw, 37 + bob, x + 1 - cw, 34 + bob, '#ef4444');
-        pb.line(x + 2 - cw, 37 + bob, x + 1 - cw, 34 + bob, '#dc2626');
-    }
-
-    // 2. 內層黑橘戰服與橘色長褲
-    pb.rect(16, 21 + bob, 8, 8, '#1e1e2c');
-    pb.line(18, 22 + bob, 21, 22 + bob, '#f97316');
-    pb.line(18, 25 + bob, 21, 25 + bob, '#f97316');
-    const ll = 16 - ls, rl = 21 + ls;
-    pb.line(17, 29 + bob, ll, 39, '#ea580c'); pb.rect(ll - 1, 39, 4, 2, '#0f172a');
-    pb.line(20, 29 + bob, rl, 39, '#f97316'); pb.rect(rl - 1, 39, 4, 2, '#0f172a');
-
-    // 3. 成熟堅毅臉龐＋六道仙人眼影＋十字瞳＋三道鬍鬚紋
+    for (let y = 19; y <= 37; y++) { const hw = 6 + Math.floor((y - 19) * 0.35); pb.rect(20 - hw - cw * 0.5, y + bob, hw * 2, 1, '#f8fafc'); pb.rect(20 - hw - cw * 0.5, y + bob, 2, 1, '#cbd5e1'); }
+    pb.rect(14, 18 + bob, 12, 3, '#dc2626'); pb.line(15, 18 + bob, 24, 18 + bob, '#f87171');
+    for (let x = 10; x <= 29; x += 4) { pb.line(x - cw, 37 + bob, x + 1 - cw, 34 + bob, '#ef4444'); pb.line(x + 2 - cw, 37 + bob, x + 1 - cw, 34 + bob, '#dc2626'); }
+    pb.rect(16, 21 + bob, 8, 8, '#1e1e2c'); pb.line(18, 22 + bob, 21, 22 + bob, '#f97316'); pb.line(18, 25 + bob, 21, 25 + bob, '#f97316');
+    const ll = 16 - ls, rl = 21 + ls; pb.line(17, 29 + bob, ll, 39, '#ea580c'); pb.rect(ll - 1, 39, 4, 2, '#0f172a'); pb.line(20, 29 + bob, rl, 39, '#f97316'); pb.rect(rl - 1, 39, 4, 2, '#0f172a');
     pb.oval(20, 14 + bob, 6.2, 5.4, '#ffcca8');
-    pb.rect(16, 13 + bob, 3, 2, '#fef08a');
-    pb.px(17, 13 + bob, '#ea580c'); // 仙人十字瞳
-    pb.px(15, 13 + bob, '#f97316'); // 仙人眼影
-    pb.rect(22, 13 + bob, 3, 2, '#fef08a');
-    pb.px(23, 13 + bob, '#ea580c');
-    pb.px(25, 13 + bob, '#f97316');
-    // 三道鬍鬚
-    pb.line(14, 15 + bob, 15, 15 + bob, '#b56545');
-    pb.line(14, 17 + bob, 15, 17 + bob, '#b56545');
-    pb.line(25, 15 + bob, 26, 15 + bob, '#b56545');
-    pb.line(25, 17 + bob, 26, 17 + bob, '#b56545');
-    pb.line(19, 17 + bob, 22, 17 + bob, '#b56545');
-
-    // 4. 七代目火影清爽短金髮（六道金光高光）
-    pb.oval(20, 8 + bob, 7.6, 3.4, '#eab308');
-    pb.oval(20, 7 + bob, 6.6, 2.6, '#facc15');
-    pb.line(16, 4 + bob, 17, 7 + bob, '#fef08a');
-    pb.line(20, 3 + bob, 20, 6 + bob, '#ffffff');
-    pb.line(24, 4 + bob, 23, 7 + bob, '#fef08a');
-    pb.line(14, 8 + bob, 14, 11 + bob, '#eab308');
-    pb.line(26, 8 + bob, 26, 11 + bob, '#eab308');
-
-    // 5. 雙手凝聚六道金色查克拉球光
-    const ax = 25 + (ls * 0.3);
-    pb.rect(ax, 24 + bob, 3, 2, '#f8fafc');
-    pb.oval(ax + 4, 24 + bob, 2.2, 2.2, '#fef08a');
-    pb.px(ax + 4, 24 + bob, '#ffffff');
-
-    pb.addOutline('#140c06');
-    return pb.bake(2);
+    pb.rect(16, 13 + bob, 3, 2, '#fef08a'); pb.px(17, 13 + bob, '#ea580c'); pb.px(15, 13 + bob, '#f97316');
+    pb.rect(22, 13 + bob, 3, 2, '#fef08a'); pb.px(23, 13 + bob, '#ea580c'); pb.px(25, 13 + bob, '#f97316');
+    pb.line(14, 15 + bob, 15, 15 + bob, '#b56545'); pb.line(14, 17 + bob, 15, 17 + bob, '#b56545'); pb.line(25, 15 + bob, 26, 15 + bob, '#b56545'); pb.line(25, 17 + bob, 26, 17 + bob, '#b56545'); pb.line(19, 17 + bob, 22, 17 + bob, '#b56545');
+    pb.oval(20, 8 + bob, 7.6, 3.4, '#eab308'); pb.oval(20, 7 + bob, 6.6, 2.6, '#facc15');
+    pb.line(16, 4 + bob, 17, 7 + bob, '#fef08a'); pb.line(20, 3 + bob, 20, 6 + bob, '#ffffff'); pb.line(24, 4 + bob, 23, 7 + bob, '#fef08a');
+    const ax = 25 + (ls * 0.3); pb.rect(ax, 24 + bob, 3, 2, '#f8fafc'); pb.oval(ax + 4, 24 + bob, 2.2, 2.2, '#fef08a'); pb.px(ax + 4, 24 + bob, '#ffffff');
+    pb.addOutline('#140c06'); return pb.bake(2);
 }
 
 function buildKakashiFrame(f) {
@@ -1051,7 +1033,7 @@ let isFarCamera = false, cameraZoom = 1.0, targetCameraZoom = 1.0;
 function toggleCameraZoom() {
     isFarCamera = !isFarCamera; targetCameraZoom = isFarCamera ? 0.68 : 1.0;
     const btn = document.getElementById('btn-zoom');
-    if (btn) { btn.innerText = isFarCamera ? '視野: 遠' : '視野: 近'; btn.classList.toggle('zoom-wide', isFarCamera); }
+    if (btn) { btn.innerText = isFarCamera ? '遠鏡' : '近鏡'; btn.classList.toggle('zoom-wide', isFarCamera); }
 }
 
 function togglePauseGame() {
@@ -1117,11 +1099,31 @@ let worldState = { t: 0, lv: 1, xp: 0, xpNext: 30, kills: 0, players: [], enemie
 let damageTexts = [], visualEffects = [], particles = [], ambientLeaves = [];
 let hudCache = { timeStr: '', waveStr: '', hpStr: '', badgesHtml: '', alliesHtml: '', bossVisible: false, bossText: '' };
 
+// 讀取曾儲存的名稱（若首次遊玩則保持空白，強制玩家輸入）
 const savedName = localStorage.getItem('naruto_coop_name') || '';
 if (savedName) document.getElementById('input-name').value = savedName;
 
 const ALL_CHAR_IDS = ['naruto', 'naruto_hokage', 'kakashi', 'jiraiya', 'sasuke', 'sakura', 'shikamaru', 'minato', 'tobirama', 'hashirama'];
 const CHAR_DISPLAY_NAMES = { naruto: '漩渦鳴人', naruto_hokage: '漩渦鳴人：七代火影', kakashi: '旗木卡卡西', jiraiya: '自來也', sasuke: '宇智波佐助', sakura: '春野櫻', shikamaru: '奈良鹿丸', minato: '波風水門', tobirama: '千手扉間', hashirama: '千手柱間' };
+
+function validatePlayerName() {
+    const input = document.getElementById('input-name');
+    const errEl = document.getElementById('lobby-error');
+    const name = input.value.trim();
+    if (!name) {
+        errEl.innerText = '⚠️ 首次開局請先輸入你的忍者名稱才可開始！';
+        input.style.borderColor = '#ef4444';
+        input.classList.remove('shake-anim');
+        void input.offsetWidth;
+        input.classList.add('shake-anim');
+        input.focus();
+        return null;
+    }
+    input.style.borderColor = '#64748b';
+    errEl.innerText = '';
+    localStorage.setItem('naruto_coop_name', name);
+    return name;
+}
 
 function chooseCharacter(charId) {
     if (!isCharUnlocked(charId)) {
@@ -1158,9 +1160,8 @@ setInterval(() => {
 }, 2500);
 
 function connectSocket(callback) {
-    const name = document.getElementById('input-name').value.trim() || '木葉忍者';
     const errEl = document.getElementById('lobby-error'), statusEl = document.getElementById('conn-status');
-    localStorage.setItem('naruto_coop_name', name); errEl.innerText = '';
+    errEl.innerText = '';
 
     if (socket && socket.connected) { if (callback) callback(); return; }
     if (callback) { pendingAction = callback; statusEl.innerText = '● 正在喚醒伺服器，請稍候...'; statusEl.style.color = '#38bdf8'; }
@@ -1172,7 +1173,7 @@ function connectSocket(callback) {
         myId = socket.id; statusEl.innerText = '● 伺服器已連線'; statusEl.style.color = '#4ade80'; errEl.innerText = '';
         if (pendingAction) { const fn = pendingAction; pendingAction = null; fn(); }
     });
-    socket.on('connect_error', () => { statusEl.innerText = '● 喚醒中（約需30秒）'; statusEl.style.color = '#fbbf24'; });
+    socket.on('connect_error', () => { statusEl.innerText = '● 喚醒中（約需10秒）'; statusEl.style.color = '#fbbf24'; });
     socket.on('globalLeaderboardUpdate', (list) => {
         if (Array.isArray(list)) {
             serverGlobalLeaderboard = list;
@@ -1302,12 +1303,22 @@ function connectSocket(callback) {
     });
 }
 
-function createOnlineRoom() { initAudio(); const name = document.getElementById('input-name').value.trim() || '木葉忍者'; connectSocket(() => socket.emit('createRoom', { name, charId: selectedChar })); }
+function createOnlineRoom() {
+    const name = validatePlayerName();
+    if (!name) return;
+    initAudio();
+    connectSocket(() => socket.emit('createRoom', { name, charId: selectedChar }));
+}
+
 function joinOnlineRoom() {
-    initAudio(); const code = document.getElementById('input-room-code').value.trim(), name = document.getElementById('input-name').value.trim() || '木葉忍者';
+    const name = validatePlayerName();
+    if (!name) return;
+    initAudio();
+    const code = document.getElementById('input-room-code').value.trim();
     if (code.length !== 4) { document.getElementById('lobby-error').innerText = '請輸入 4 位數房間號碼！'; return; }
     connectSocket(() => socket.emit('joinRoom', { code, name, charId: selectedChar }));
 }
+
 function hostStartGame() { if (socket && isHost) socket.emit('startGame'); }
 
 function returnToMainMenu() {
@@ -1333,10 +1344,12 @@ function updateOnlineHud() {
     document.getElementById('ui-kills').innerText = worldState.kills;
     const timeStr = formatTimeStr(worldState.t);
     if (timeStr !== hudCache.timeStr) { hudCache.timeStr = timeStr; document.getElementById('ui-time').innerText = timeStr; }
-    const wave = Math.floor(worldState.t / 30) + 1, waveStr = `木葉防衛 • 第 ${wave} 波`;
-    if (waveStr !== hudCache.waveStr) { hudCache.waveStr = waveStr; document.getElementById('wave-tag').innerText = waveStr; }
 
     const activeBoss = worldState.enemies.find(e => e.isBoss && e.hp > 0);
+    const wave = Math.floor(worldState.t / 30) + 1;
+    const waveStr = activeBoss ? '⚠️ BOSS決戰 (小怪暫停)' : `木葉防衛 • 第 ${wave} 波`;
+    if (waveStr !== hudCache.waveStr) { hudCache.waveStr = waveStr; document.getElementById('wave-tag').innerText = waveStr; }
+
     const bossHudEl = document.getElementById('boss-hud');
     if (activeBoss) {
         if (!hudCache.bossVisible) { hudCache.bossVisible = true; bossHudEl.style.display = 'block'; }
@@ -1352,7 +1365,10 @@ function updateOnlineHud() {
         const hpStr = me.downed ? '倒地！等待隊友救援' : `${Math.ceil(me.hp)} / ${me.maxHp}`;
         if (hpStr !== hudCache.hpStr) { hudCache.hpStr = hpStr; document.getElementById('hud-hp-text').innerText = hpStr; }
 
+        const tStatus = getTerrainStatusAt(me.rx ?? me.x, me.ry ?? me.y);
         const badges = [`<div class="w-badge">主忍術 x${me.wCount}</div>`];
+        if (tStatus.inMud) badges.push(`<div class="w-badge debuff">泥地減速</div>`);
+        if (tStatus.inPoison) badges.push(`<div class="w-badge debuff">☠️ 毒氣扣血</div>`);
         if (me.charId === 'naruto_hokage') badges.push(`<div class="w-badge buff">仙術回血20%</div>`);
         if (me.magnetT > 0) badges.push(`<div class="w-badge buff">🧲 磁石 ${Math.ceil(me.magnetT)}s</div>`);
         if (me.scrollT > 0) badges.push(`<div class="w-badge buff">📜 秘卷 ${Math.ceil(me.scrollT)}s</div>`);
@@ -1388,49 +1404,42 @@ function updateOnlineHud() {
 let soloState = null;
 
 function startOfflineSolo() {
+    const validName = validatePlayerName();
+    if (!validName) return;
+
     initAudio(); mode = 'SOLO'; isHost = true; myId = 'local';
     hudCache = { timeStr: '', waveStr: '', hpStr: '', badgesHtml: '', alliesHtml: '', bossVisible: false, bossText: '' };
     resetAllInputs(); damageTexts = []; visualEffects = []; particles = [];
     document.getElementById('ping-badge').innerText = 'OFFLINE SOLO';
 
-    const baseStats = {
-        naruto: { maxHp: 110, speed: 225, regen: 0, weapon: 'shuriken', cooldown: 0.95, damage: 20, count: 1, pierce: 1, clones: 0 },
-        naruto_hokage: { maxHp: 180, speed: 255, regen: 2.0, weapon: 'rasenshuriken', cooldown: 0.85, damage: 34, count: 8, pierce: 3, clones: 2 },
-        kakashi: { maxHp: 95, speed: 245, regen: 0, weapon: 'kunai', cooldown: 1.05, damage: 28, count: 1, pierce: 1, clones: 0 },
-        jiraiya: { maxHp: 135, speed: 200, regen: 0, weapon: 'needle', cooldown: 1.35, damage: 16, count: 3, pierce: 1, clones: 0 },
-        sasuke: { maxHp: 100, speed: 240, regen: 0, weapon: 'chidori_senbon', cooldown: 0.92, damage: 24, count: 1, pierce: 1, clones: 0 },
-        sakura: { maxHp: 130, speed: 215, regen: 1.5, weapon: 'cherry_kunai', cooldown: 1.15, damage: 30, count: 1, pierce: 1, clones: 0 },
-        shikamaru: { maxHp: 105, speed: 220, regen: 0, weapon: 'trench_knife', cooldown: 1.10, damage: 22, count: 1, pierce: 1, clones: 0 },
-        minato: { maxHp: 115, speed: 265, regen: 0, weapon: 'hiraishin_kunai', cooldown: 0.82, damage: 25, count: 2, pierce: 1, clones: 0 },
-        tobirama: { maxHp: 145, speed: 260, regen: 1.0, weapon: 'suidanha', cooldown: 0.85, damage: 32, count: 1, pierce: 4, clones: 0 },
-        hashirama: { maxHp: 190, speed: 245, regen: 3.0, weapon: 'wood_root', cooldown: 0.80, damage: 38, count: 2, pierce: 5, clones: 0 }
-    }[selectedChar];
+    const baseStats = GAME_BALANCE_CONFIG.characters[selectedChar] || GAME_BALANCE_CONFIG.characters.naruto;
+    const skCfg = GAME_BALANCE_CONFIG.skills;
 
     soloState = {
         t: 0, lv: 1, xp: 0, xpNext: 20, kills: 0, spawnTimer: 0.4, propSpawnTimer: 2.5, nextId: 1,
         bossSpawned: { gaara: false, orochimaru: false, itachi: false, pain: false },
         player: {
-            id: 'local', name: document.getElementById('input-name').value.trim() || '單機忍者', charId: selectedChar,
+            id: 'local', name: validName, charId: selectedChar,
             x: 0, y: 0, rx: 0, ry: 0, spd: baseStats.speed, facing: 'right', moving: false,
             hp: baseStats.maxHp, maxHp: baseStats.maxHp, speed: baseStats.speed, regen: baseStats.regen,
             pickupRange: 130, hitTimer: 0, downed: false, revive: 0,
-            magnetT: 0, scrollT: 0, scrollType: '', sageHealTimer: 5.0,
+            magnetT: 0, scrollT: 0, scrollType: '', sageHealTimer: GAME_BALANCE_CONFIG.hokageSageHealInterval, poisonTick: 0,
             wType: baseStats.weapon, wCd: baseStats.cooldown, wTimer: 0.3, wDmg: baseStats.damage, wCount: baseStats.count, wPierce: baseStats.pierce,
-            rasenLv: 0, rasenR: 120, rasenDmg: 13, rasenTimer: 0,
-            bijuuLv: 0, bijuuCnt: 1, bijuuDmg: 58, bijuuR: 105, bijuuTimer: 0,
-            raikiriLv: 0, raikiriCnt: 2, raikiriDmg: 18, raikiriR: 95, raikiriSpd: 3.4,
-            lightLv: 0, lightBolts: 2, lightDmg: 26, lightTimer: 0,
-            fireLv: 0, fireDmg: 34, fireR: 85, fireTimer: 0,
-            amatLv: 0, amatCnt: 2, amatDmg: 28, amatR: 68, amatTimer: 0,
-            smashLv: 0, smashR: 135, smashDmg: 32, smashTimer: 0,
-            healLv: 0, healAmt: 14, healR: 185, healTimer: 0,
-            shadowLv: 0, shadowR: 135, shadowDmg: 11, shadowTimer: 0,
-            stitchLv: 0, stitchSpikes: 3, stitchDmg: 25, stitchTimer: 0,
-            hiraiLv: 0, hiraiStrikes: 3, hiraiDmg: 30, hiraiTimer: 0,
-            wDragLv: 0, wDragCnt: 1, wDragDmg: 42, wDragR: 85, wDragTimer: 0,
-            bombLv: 0, bombCnt: 3, bombDmg: 36, bombR: 75, bombTimer: 0,
-            woodDragLv: 0, woodDragCnt: 2, woodDragDmg: 32, woodDragR: 115, woodDragSpd: 3.2,
-            buddhaLv: 0, buddhaR: 220, buddhaDmg: 55, buddhaTimer: 0,
+            rasenLv: 0, rasenR: 120, rasenDmg: skCfg.rasenganDamage, rasenTimer: 0,
+            bijuuLv: 0, bijuuCnt: 1, bijuuDmg: skCfg.bijuuBombDamage, bijuuR: 105, bijuuTimer: 0,
+            raikiriLv: 0, raikiriCnt: 2, raikiriDmg: skCfg.raikiriDamage, raikiriR: 95, raikiriSpd: 3.4,
+            lightLv: 0, lightBolts: 2, lightDmg: skCfg.lightningDamage, lightTimer: 0,
+            fireLv: 0, fireDmg: skCfg.fireballDamage, fireR: 85, fireTimer: 0,
+            amatLv: 0, amatCnt: 2, amatDmg: skCfg.amaterasuDamage, amatR: 68, amatTimer: 0,
+            smashLv: 0, smashR: 135, smashDmg: skCfg.cherrySmashDamage, smashTimer: 0,
+            healLv: 0, healAmt: skCfg.byakugouHeal, healR: 185, healTimer: 0,
+            shadowLv: 0, shadowR: 135, shadowDmg: skCfg.shadowBindDamage, shadowTimer: 0,
+            stitchLv: 0, stitchSpikes: 3, stitchDmg: skCfg.shadowStitchDamage, stitchTimer: 0,
+            hiraiLv: 0, hiraiStrikes: 3, hiraiDmg: skCfg.hiraishinDamage, hiraiTimer: 0,
+            wDragLv: 0, wDragCnt: 1, wDragDmg: skCfg.waterDragonDamage, wDragR: 85, wDragTimer: 0,
+            bombLv: 0, bombCnt: 3, bombDmg: skCfg.tandemBombsDamage, bombR: 75, bombTimer: 0,
+            woodDragLv: 0, woodDragCnt: 2, woodDragDmg: skCfg.woodDragonDamage, woodDragR: 115, woodDragSpd: 3.2,
+            buddhaLv: 0, buddhaR: 220, buddhaDmg: skCfg.senpoBuddhaDamage, buddhaTimer: 0,
             clones: baseStats.clones || 0, cloneTimers: [0.3, 0.5, 0.7, 0.9]
         },
         enemies: [], props: [], items: [], projectiles: [], enemyProjectiles: [], hazards: [], gems: []
@@ -1445,11 +1454,14 @@ function startOfflineSolo() {
     gameState = 'PLAYING';
 }
 
-function hurtSoloPlayer(amount) {
+function hurtSoloPlayer(amount, bypassIframes = false) {
     const s = soloState, p = s.player;
-    if (p.hitTimer > 0) return;
-    p.hp = Math.max(0, p.hp - amount); p.hitTimer = 0.55; screenShake = 9; playSfx('hurt');
-    const o = document.getElementById('damage-overlay'); o.classList.add('hit-flash'); setTimeout(() => o.classList.remove('hit-flash'), 160);
+    if (!bypassIframes && p.hitTimer > 0) return;
+    p.hp = Math.max(0, p.hp - amount);
+    if (!bypassIframes) {
+        p.hitTimer = 0.55; screenShake = 9; playSfx('hurt');
+        const o = document.getElementById('damage-overlay'); o.classList.add('hit-flash'); setTimeout(() => o.classList.remove('hit-flash'), 160);
+    }
     if (p.hp <= 0) {
         gameState = 'GAMEOVER'; resetAllInputs();
         document.getElementById('ui-layer').style.display = 'none';
@@ -1490,7 +1502,11 @@ function triggerSoloItemPickup(item) {
         p.scrollT = 10.0; const r = Math.random();
         if (r < 0.34) { p.scrollType = 'frenzy'; damageTexts.push({ x: p.x, y: p.y - 52, text: '📜 秘卷：神速結印 (10秒)！', color: '#facc15', life: 1.5 }); }
         else if (r < 0.68) { p.scrollType = 'power'; damageTexts.push({ x: p.x, y: p.y - 52, text: '📜 秘卷：仙法增幅 (10秒)！', color: '#c084fc', life: 1.5 }); }
-        else { p.scrollType = 'chakra'; p.hp = Math.min(p.maxHp, p.hp + 35); damageTexts.push({ x: p.x, y: p.y - 52, text: '📜 秘卷：查克拉爆發 (+35HP)！', color: '#4ade80', life: 1.5 }); }
+        else {
+            const healVal = GAME_BALANCE_CONFIG.scrollHealAmount;
+            p.scrollType = 'chakra'; p.hp = Math.min(p.maxHp, p.hp + healVal);
+            damageTexts.push({ x: p.x, y: p.y - 52, text: `📜 秘卷：查克拉爆發 (+${healVal}HP)！`, color: '#4ade80', life: 1.5 });
+        }
         playSfx('levelup');
     }
 }
@@ -1503,37 +1519,56 @@ function stepSolo(dt) {
     if (p.scrollT > 0) p.scrollT = Math.max(0, p.scrollT - dt);
     if (p.regen > 0 && p.hp < p.maxHp) p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
 
-    // 七代火影：仙術形態每 5 秒自動回血 20%
     if (p.charId === 'naruto_hokage') {
         p.sageHealTimer -= dt;
         if (p.sageHealTimer <= 0) {
-            p.sageHealTimer = 5.0;
-            const healAmt = Math.round(p.maxHp * 0.20);
+            p.sageHealTimer = GAME_BALANCE_CONFIG.hokageSageHealInterval;
+            const healAmt = Math.round(p.maxHp * GAME_BALANCE_CONFIG.hokageSageHealRatio);
             p.hp = Math.min(p.maxHp, p.hp + healAmt);
             visualEffects.push({ kind: 'sage_heal', x: p.x, y: p.y, r: 95, life: 0.45, maxLife: 0.45 });
             playSfx('gem');
-            damageTexts.push({ x: p.x, y: p.y - 48, text: `+${healAmt} (仙術回血20%)`, color: '#4ade80', life: 1.1 });
+            damageTexts.push({ x: p.x, y: p.y - 48, text: `+${healAmt} (仙術回血)`, color: '#4ade80', life: 1.1 });
         }
+    }
+
+    const terrain = getTerrainStatusAt(p.x, p.y);
+    if (terrain.inPoison) {
+        p.poisonTick += dt;
+        if (p.poisonTick >= 0.5) {
+            p.poisonTick -= 0.5;
+            const pDmg = Math.max(1, Math.round(GAME_BALANCE_CONFIG.poisonDamagePerSec * 0.5));
+            damageTexts.push({ x: p.x, y: p.y - 36, text: `-${pDmg} (毒氣)`, color: '#a855f7', life: 0.7 });
+            hurtSoloPlayer(pDmg, true);
+            if (gameState === 'GAMEOVER') return;
+        }
+    } else {
+        p.poisonTick = 0;
     }
 
     const dmgMult = p.scrollT > 0 ? (p.scrollType === 'power' ? 1.5 : 1.3) : 1.0;
     const cdMult = p.scrollT > 0 ? (p.scrollType === 'frenzy' ? 0.6 : 0.72) : 1.0;
-    const spdMult = p.scrollT > 0 ? (p.scrollType === 'frenzy' ? 1.25 : 1.18) : 1.0;
-    p.spd = Math.round(p.speed * spdMult);
+    const scrollSpdMult = p.scrollT > 0 ? (p.scrollType === 'frenzy' ? 1.25 : 1.18) : 1.0;
+    const terrainSpdMult = terrain.inMud ? GAME_BALANCE_CONFIG.mudSpeedMultiplier : 1.0;
+    p.spd = Math.round(p.speed * scrollSpdMult * terrainSpdMult);
 
     const spawnSoloBoss = (key, title, st) => {
         s.bossSpawned[key] = true; const ang = Math.random() * Math.PI * 2, bx = p.x + Math.cos(ang) * 520, by = p.y + Math.sin(ang) * 520;
         s.enemies.push({ id: s.nextId++, type: key, isBoss: true, bossTitle: title, x: bx, y: by, rx: bx, ry: by, vx: 0, vy: 0, facing: 'left', hp: st.hp, maxHp: st.hp, speed: st.speed, damage: st.damage, radius: st.radius, xp: st.xp, hitTimer: 0, slowTimer: 0, slowFactor: 0.65, skillTimer1: 2.2, skillTimer2: 4.5, skillTimer3: 7.0, pullTimer: 0 });
         showBossBanner(`⚠️ 強敵來襲：${title} 登場！`, st.alertColor); playSfx('rasengan');
     };
-    if (s.t >= 180 && !s.bossSpawned.gaara) spawnSoloBoss('gaara', '砂瀑之我愛羅', { hp: 3000, speed: 100, damage: 30, radius: 34, xp: 60, alertColor: '#f59e0b' });
-    if (s.t >= 300 && !s.bossSpawned.orochimaru) spawnSoloBoss('orochimaru', '傳說三忍・大蛇丸', { hp: 6600, speed: 105, damage: 49, radius: 34, xp: 110, alertColor: '#a855f7' });
-    if (s.t >= 480 && !s.bossSpawned.itachi) spawnSoloBoss('itachi', '曉・宇智波鼬', { hp: 12500, speed: 110, damage: 34, radius: 54, xp: 180, alertColor: '#ef4444' });
-    if (s.t >= 600 && !s.bossSpawned.pain) spawnSoloBoss('pain', '神・佩恩（長門）', { hp: 38000, speed: 120, damage: 50, radius: 68, xp: 400, alertColor: '#c084fc' });
+    if (s.t >= 180 && !s.bossSpawned.gaara) spawnSoloBoss('gaara', '砂瀑之我愛羅', { hp: 2600, speed: 138, damage: 22, radius: 34, xp: 60, alertColor: '#f59e0b' });
+    if (s.t >= 300 && !s.bossSpawned.orochimaru) spawnSoloBoss('orochimaru', '傳說三忍・大蛇丸', { hp: 5800, speed: 155, damage: 28, radius: 34, xp: 110, alertColor: '#a855f7' });
+    if (s.t >= 480 && !s.bossSpawned.itachi) spawnSoloBoss('itachi', '曉・宇智波鼬', { hp: 9500, speed: 178, damage: 34, radius: 34, xp: 180, alertColor: '#ef4444' });
+    if (s.t >= 601 && !s.bossSpawned.pain) spawnSoloBoss('pain', '神・佩恩（長門）', { hp: 28000, speed: 101, damage: 42, radius: 38, xp: 400, alertColor: '#c084fc' });
 
     const { dx, dy } = getMoveVector();
     p.moving = (dx !== 0 || dy !== 0);
-    if (p.moving) { p.x += dx * p.speed * spdMult * dt; p.y += dy * p.speed * spdMult * dt; if (dx < -0.05) p.facing = 'left'; if (dx > 0.05) p.facing = 'right'; }
+    if (p.moving) {
+        p.x += dx * p.speed * scrollSpdMult * terrainSpdMult * dt;
+        p.y += dy * p.speed * scrollSpdMult * terrainSpdMult * dt;
+        if (dx < -0.05) p.facing = 'left';
+        if (dx > 0.05) p.facing = 'right';
+    }
     p.rx = p.x; p.ry = p.y;
 
     s.propSpawnTimer -= dt;
@@ -1545,7 +1580,6 @@ function stepSolo(dt) {
         }
     }
 
-    // 主武器射擊（七代火影為 8 方向全周向風遁・螺旋手裏劍！）
     p.wTimer -= dt;
     if (p.wTimer <= 0 && (s.enemies.length > 0 || s.props.length > 0 || p.charId === 'naruto_hokage')) {
         let nearest = null, minD = Infinity;
@@ -1572,7 +1606,6 @@ function stepSolo(dt) {
         }
     }
 
-    // 影分身射擊（七代火影最多 4 個分身）
     if (p.clones > 0 && s.enemies.length > 0) {
         const offsets = [[-52, -26], [52, -26], [-52, 26], [52, 26]];
         for (let c = 0; c < p.clones; c++) {
@@ -1596,7 +1629,6 @@ function stepSolo(dt) {
         }
     }
 
-    // 七代火影專屬：尾獸玉・連彈
     if (p.bijuuLv > 0 && s.enemies.length > 0) {
         p.bijuuTimer -= dt;
         if (p.bijuuTimer <= 0) {
@@ -1624,12 +1656,17 @@ function stepSolo(dt) {
     if (p.hiraiLv > 0 && s.enemies.length > 0) { p.hiraiTimer -= dt; if (p.hiraiTimer <= 0) { p.hiraiTimer = 1.35 * cdMult; const ts = s.enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 460).slice(0, p.hiraiStrikes); if (ts.length) { playSfx('rasengan'); let px = p.x, py = p.y; ts.forEach(t => { visualEffects.push({ kind: 'hiraishin', x1: px, y1: py, x2: t.x, y2: t.y, life: 0.25, maxLife: 0.25 }); soloDamageEnemy(t, p.hiraiDmg * dmgMult, '#facc15', 60); px = t.x; py = t.y; }); } } }
     if (p.wDragLv > 0 && s.enemies.length > 0) { p.wDragTimer -= dt; if (p.wDragTimer <= 0) { p.wDragTimer = 1.65 * cdMult; const ts = s.enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 550).slice(0, p.wDragCnt); if (ts.length) { playSfx('rasengan'); ts.forEach(t => { const ang = Math.atan2(t.y - p.y, t.x - p.x); s.projectiles.push({ id: s.nextId++, kind: 'water_dragon', x: p.x, y: p.y, vx: Math.cos(ang) * 520, vy: Math.sin(ang) * 520, angle: ang, damage: p.wDragDmg * dmgMult, blastR: p.wDragR, pierce: 1, hitIds: new Set(), radius: 18, life: 1.8 }); }); } } }
     if (p.bombLv > 0 && s.enemies.length > 0) { p.bombTimer -= dt; if (p.bombTimer <= 0) { p.bombTimer = 1.55 * cdMult; const ts = s.enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 460).slice(0, p.bombCnt); if (ts.length) { playSfx('hit'); ts.forEach(t => { visualEffects.push({ kind: 'blast', x: t.x, y: t.y, r: p.bombR, life: 0.32, maxLife: 0.32 }); s.enemies.forEach(e => { if (Math.hypot(e.x - t.x, e.y - t.y) <= p.bombR + e.radius) soloDamageEnemy(e, p.bombDmg * dmgMult, '#fb923c', 180); }); damageSoloPropsInRadius(t.x, t.y, p.bombR, p.bombDmg * dmgMult); }); } } }
-    if (p.woodDragLv > 0) { const time = s.t * p.woodDragSpd; for (let i = 0; i < p.woodDragCnt; i++) { const ang = time + ((Math.PI * 2) / p.woodDragCnt) * i, sx = p.x + Math.cos(ang) * p.woodDragR, sy = p.y + Math.sin(ang) * p.woodDragR; for (const e of s.enemies) if (e.hitTimer <= 0 && Math.hypot(e.x - sx, e.y - sy) < 20 + e.radius) { soloDamageEnemy(e, p.woodDragDmg * dmgMult, '#a3e635', 260); p.hp = Math.min(p.maxHp, p.hp + 1.5); } for (const prp of s.props) if (prp.hitTimer <= 0 && Math.hypot(prp.x - sx, prp.y - sy) < 20 + prp.radius) damageSoloProp(prp, p.woodDragDmg * dmgMult); } }
+    if (p.woodDragLv > 0) { const time = s.t * p.woodDragSpd; for (let i = 0; i < p.woodDragCnt; i++) { const ang = time + ((Math.PI * 2) / p.woodDragCnt) * i, sx = p.x + Math.cos(ang) * p.woodDragR, sy = p.y + Math.sin(ang) * p.woodDragR; for (const e of s.enemies) if (e.hitTimer <= 0 && Math.hypot(e.x - sx, e.y - sy) < 20 + e.radius) { soloDamageEnemy(e, p.woodDragDmg * dmgMult, '#a3e635', 260); p.hp = Math.min(p.maxHp, p.hp + 0.2); } for (const prp of s.props) if (prp.hitTimer <= 0 && Math.hypot(prp.x - sx, prp.y - sy) < 20 + prp.radius) damageSoloProp(prp, p.woodDragDmg * dmgMult); } }
     if (p.buddhaLv > 0) { p.buddhaTimer -= dt; if (p.buddhaTimer <= 0) { p.buddhaTimer = 1.8 * cdMult; visualEffects.push({ kind: 'buddha', x: p.x, y: p.y, r: p.buddhaR, life: 0.45, maxLife: 0.45 }); screenShake = Math.max(screenShake, 7); playSfx('rasengan'); s.enemies.forEach(e => { if (Math.hypot(e.x - p.x, e.y - p.y) <= p.buddhaR + e.radius) soloDamageEnemy(e, p.buddhaDmg * dmgMult, '#fde047', 350); }); damageSoloPropsInRadius(p.x, p.y, p.buddhaR, p.buddhaDmg * dmgMult); } }
 
+    const hasActiveBoss = s.enemies.some(e => e.isBoss && e.hp > 0);
+    const blockSpawnByBoss = GAME_BALANCE_CONFIG.stopSpawnDuringBoss && hasActiveBoss;
     s.spawnTimer -= dt;
-    if (s.spawnTimer <= 0) {
-        const spawnRate = Math.max(0.22, 0.95 - s.t / 280), spawnCount = Math.floor(1 + s.t / 45), hpMult = 1 + s.t / 110;
+    if (!blockSpawnByBoss && s.spawnTimer <= 0 && s.enemies.length < GAME_BALANCE_CONFIG.maxEnemies) {
+        const spawnRate = Math.max(0.22, 0.95 - s.t / 280);
+        const remainSlots = GAME_BALANCE_CONFIG.maxEnemies - s.enemies.length;
+        const spawnCount = Math.min(remainSlots, Math.floor(1 + s.t / 45));
+        const hpMult = 1 + s.t / 110;
         const viewDiagonal = Math.hypot(canvas.width / 2, canvas.height / 2) / 0.68;
         for (let i = 0; i < spawnCount; i++) {
             const ang = Math.random() * Math.PI * 2, dist = viewDiagonal + 90, r = Math.random();
@@ -1828,7 +1865,7 @@ function showSoloLevelUp() {
             else if (c.id === 'hiraishin') { if (!p.hiraiLv) p.hiraiLv = 1; else { p.hiraiStrikes++; p.hiraiDmg += 12; } }
             else if (c.id === 'water_dragon') { if (!p.wDragLv) p.wDragLv = 1; else { p.wDragCnt++; p.wDragDmg += 18; } }
             else if (c.id === 'tandem_bombs') { if (!p.bombLv) p.bombLv = 1; else { p.bombCnt++; p.bombDmg += 15; } }
-            else if (c.id === 'wood_dragon') { if (!p.woodDragLv) p.woodDragLv = 1; else { p.woodDragCnt++; p.woodDragDmg += 14; p.woodDragR += 12; } }
+            else if (c.id === 'wood_dragon') { if (!p.woodDragLv) p.woodDragLv = 1; else { p.woodDragCnt++; p.woodDragDmg += 14; p.woodDragR += 10; } }
             else if (c.id === 'senpo_buddha') { if (!p.buddhaLv) p.buddhaLv = 1; else { p.buddhaR += 35; p.buddhaDmg += 25; } }
             else if (c.id === 'clone') p.clones++;
             else if (c.id === 'hp') { p.maxHp += (p.charId === 'hashirama' ? 60 : p.charId === 'naruto_hokage' ? 50 : 35); p.hp = Math.min(p.maxHp, p.hp + 100); }
@@ -1869,6 +1906,51 @@ function initLeaves() {
     for (let i = 0; i < 22; i++) ambientLeaves.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: -25 - Math.random() * 35, vy: 20 + Math.random() * 25, sway: Math.random() * Math.PI * 2, color: Math.random() > 0.35 ? '#4ade80' : '#f59e0b' });
 }
 
+function drawVisibleTerrains() {
+    const viewW = canvas.width / cameraZoom + 400;
+    const viewH = canvas.height / cameraZoom + 400;
+    const minSx = Math.floor((camera.x - viewW / 2) / TERRAIN_SECTOR_SIZE);
+    const maxSx = Math.floor((camera.x + viewW / 2) / TERRAIN_SECTOR_SIZE);
+    const minSy = Math.floor((camera.y - viewH / 2) / TERRAIN_SECTOR_SIZE);
+    const maxSy = Math.floor((camera.y + viewH / 2) / TERRAIN_SECTOR_SIZE);
+
+    for (let sy = minSy; sy <= maxSy; sy++) {
+        for (let sx = minSx; sx <= maxSx; sx++) {
+            const t = getSectorTerrain(sx, sy);
+            if (!t) continue;
+            ctx.save();
+            if (t.kind === 'mud') {
+                ctx.fillStyle = '#451a03';
+                ctx.beginPath(); ctx.ellipse(t.x, t.y, t.r, t.r * 0.82, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#78350f';
+                ctx.beginPath(); ctx.ellipse(t.x, t.y, t.r * 0.84, t.r * 0.68, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#92400e';
+                ctx.beginPath(); ctx.ellipse(t.x - 12, t.y - 6, t.r * 0.45, t.r * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+            } else if (t.kind === 'poison') {
+                const pulse = Math.sin(renderTime * 3 + sx) * 4;
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.22)';
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r + pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(126, 34, 206, 0.18)';
+                ctx.beginPath(); ctx.arc(t.x, t.y, (t.r + pulse) * 0.68, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([8, 6]);
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.stroke();
+                ctx.setLineDash([]);
+
+                for (let b = 0; b < 5; b++) {
+                    const phase = (renderTime * 0.7 + b * 0.21 + sx) % 1;
+                    const bx = t.x + Math.cos(b * 2.1 + sy) * (t.r * 0.55);
+                    const by = t.y + (0.5 - phase) * (t.r * 0.8);
+                    ctx.fillStyle = b % 2 === 0 ? 'rgba(167, 243, 208, 0.7)' : 'rgba(216, 180, 254, 0.7)';
+                    ctx.fillRect(Math.round(bx - 3), Math.round(by - 3), 6, 6);
+                }
+            }
+            ctx.restore();
+        }
+    }
+}
+
 function renderWorld(dt, isPaused = false) {
     cameraZoom += (targetCameraZoom - cameraZoom) * Math.min(1, dt * 10);
     if (!isPaused) {
@@ -1879,8 +1961,14 @@ function renderWorld(dt, isPaused = false) {
             worldState.players.forEach(p => {
                 if (p.rx === undefined) { p.rx = p.x; p.ry = p.y; }
                 if (p.id === myId) {
-                    if (!p.downed && gameState === 'PLAYING' && (dx !== 0 || dy !== 0)) { p.moving = true; p.rx += dx * (p.spd || 225) * dt; p.ry += dy * (p.spd || 225) * dt; if (dx < -0.05) p.facing = 'left'; if (dx > 0.05) p.facing = 'right'; }
-                    else p.moving = false;
+                    if (!p.downed && gameState === 'PLAYING' && (dx !== 0 || dy !== 0)) {
+                        const tStatus = getTerrainStatusAt(p.rx, p.ry);
+                        const mudMult = tStatus.inMud ? GAME_BALANCE_CONFIG.mudSpeedMultiplier : 1.0;
+                        p.moving = true;
+                        p.rx += dx * (p.spd || 225) * mudMult * dt;
+                        p.ry += dy * (p.spd || 225) * mudMult * dt;
+                        if (dx < -0.05) p.facing = 'left'; if (dx > 0.05) p.facing = 'right';
+                    } else p.moving = false;
                 } else { p.rx += (p.vx || 0) * dt; p.ry += (p.vy || 0) * dt; p.rx += (p.x - p.rx) * blend; p.ry += (p.y - p.ry) * blend; }
             });
             worldState.enemies.forEach(e => { if (e.rx === undefined) { e.rx = e.x; e.ry = e.y; } e.rx += (e.vx || 0) * dt; e.ry += (e.vy || 0) * dt; e.rx += (e.x - e.rx) * blend; e.ry += (e.y - e.ry) * blend; });
@@ -1899,6 +1987,8 @@ function renderWorld(dt, isPaused = false) {
     ctx.translate(canvas.width / 2, canvas.height / 2); ctx.scale(cameraZoom, cameraZoom); ctx.translate(-camera.x + shakeX, -camera.y + shakeY);
 
     if (groundPattern) { const vw = canvas.width / cameraZoom + 128, vh = canvas.height / cameraZoom + 128; ctx.fillStyle = groundPattern; ctx.fillRect(camera.x - vw / 2, camera.y - vh / 2, vw, vh); }
+
+    drawVisibleTerrains();
 
     for (const hz of (worldState.hazards || [])) {
         const p = Math.min(1, Math.max(0, hz.progress || 0));
@@ -1943,27 +2033,16 @@ function renderWorld(dt, isPaused = false) {
     for (const pr of worldState.projectiles) {
         ctx.save(); ctx.translate(pr.x, pr.y);
         if (pr.kind === 'rasenshuriken') {
-            // 六道風遁・螺旋手裏劍（金色旋轉四葉風刃＋藍色核心螺旋丸）
             ctx.rotate(renderTime * 24);
-            ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
-            ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fef08a';
-            ctx.fillRect(-15, -3, 30, 6);
-            ctx.fillRect(-3, -15, 6, 30);
-            ctx.fillStyle = '#38bdf8';
-            ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(-2, -2, 4, 4);
+            ctx.fillStyle = 'rgba(250, 204, 21, 0.35)'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fef08a'; ctx.fillRect(-15, -3, 30, 6); ctx.fillRect(-3, -15, 6, 30);
+            ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(-2, -2, 4, 4);
         } else if (pr.kind === 'bijuu_bomb') {
-            // 七代火影：尾獸玉（紫黑查克拉高密度球體＋金焰外環）
-            ctx.fillStyle = 'rgba(250, 204, 21, 0.4)';
-            ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#3b0764';
-            ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = '#e879f9';
-            ctx.beginPath(); ctx.arc(-3, -3, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'rgba(250, 204, 21, 0.4)'; ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#3b0764'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = '#e879f9'; ctx.beginPath(); ctx.arc(-3, -3, 5, 0, Math.PI * 2); ctx.fill();
         } else if (pr.kind === 'shuriken') { ctx.rotate(renderTime * 18); ctx.fillStyle = '#0f172a'; ctx.fillRect(-9, -3, 18, 6); ctx.fillRect(-3, -9, 6, 18); ctx.fillStyle = '#e2e8f0'; ctx.fillRect(-8, -2, 16, 4); ctx.fillRect(-2, -8, 4, 16); }
         else if (pr.kind === 'needle') { ctx.rotate(pr.angle); ctx.fillStyle = '#f8fafc'; ctx.fillRect(-10, -1, 20, 3); ctx.fillStyle = '#38bdf8'; ctx.fillRect(6, -1, 5, 3); }
         else if (pr.kind === 'chidori_senbon') { ctx.rotate(pr.angle); ctx.fillStyle = 'rgba(56,189,248,0.45)'; ctx.fillRect(-22, -3, 28, 6); ctx.fillStyle = '#fff'; ctx.fillRect(-10, -1, 24, 3); }
@@ -2100,17 +2179,11 @@ function drawTeammateEdgeIndicators() {
 function drawPlayerEntity(p) {
     const px = p.rx ?? p.x, py = p.ry ?? p.y;
 
-    // 七代火影專屬六道仙人金色氣場
     if (!p.downed && p.charId === 'naruto_hokage') {
         const pulse = Math.sin(renderTime * 10) * 4;
         ctx.save();
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.16)';
-        ctx.strokeStyle = 'rgba(253, 224, 71, 0.78)';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.ellipse(px, py + 34, 34 + pulse, 14 + pulse * 0.4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.16)'; ctx.strokeStyle = 'rgba(253, 224, 71, 0.78)'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.ellipse(px, py + 34, 34 + pulse, 14 + pulse * 0.4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.restore();
     }
 
@@ -2136,8 +2209,7 @@ function drawPlayerEntity(p) {
         ctx.save();
         ctx.fillStyle = isHokage ? 'rgba(250, 204, 21, 0.16)' : 'rgba(14, 165, 233, 0.14)';
         ctx.strokeStyle = isHokage ? 'rgba(253, 224, 71, 0.72)' : 'rgba(56, 189, 248, 0.6)';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(px, py, r + pulse, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, r + pulse, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.restore();
     }
 
