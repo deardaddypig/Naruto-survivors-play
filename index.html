@@ -1419,7 +1419,7 @@ function updateOnlineHud() {
 
     const activeBoss = worldState.enemies.find(e => e.isBoss && e.hp > 0);
     const wave = Math.floor(worldState.t / 30) + 1;
-    const waveStr = activeBoss ? '⚠️ BOSS決戰 (小怪暫停)' : `木葉防衛 • 第 ${wave} 波`;
+    const waveStr = activeBoss ? '⚠️ BOSS決戰 ' : `木葉防衛 • 第 ${wave} 波`;
     if (waveStr !== hudCache.waveStr) { hudCache.waveStr = waveStr; document.getElementById('wave-tag').innerText = waveStr; }
 
     const bossHudEl = document.getElementById('boss-hud');
@@ -1628,10 +1628,10 @@ function stepSolo(dt) {
         s.enemies.push({ id: s.nextId++, type: key, isBoss: true, bossTitle: title, x: bx, y: by, rx: bx, ry: by, vx: 0, vy: 0, facing: 'left', hp: st.hp, maxHp: st.hp, speed: st.speed, damage: st.damage, radius: st.radius, xp: st.xp, hitTimer: 0, slowTimer: 0, slowFactor: 0.65, skillTimer1: 2.2, skillTimer2: 4.5, skillTimer3: 7.0, pullTimer: 0 });
         showBossBanner(`⚠️ 強敵來襲：${title} 登場！`, st.alertColor); playSfx('rasengan');
     };
-    if (s.t >= 180 && !s.bossSpawned.gaara) spawnSoloBoss('gaara', '砂瀑之我愛羅', { hp: 2600, speed: 138, damage: 22, radius: 34, xp: 60, alertColor: '#f59e0b' });
-    if (s.t >= 300 && !s.bossSpawned.orochimaru) spawnSoloBoss('orochimaru', '傳說三忍・大蛇丸', { hp: 5800, speed: 155, damage: 28, radius: 34, xp: 110, alertColor: '#a855f7' });
-    if (s.t >= 480 && !s.bossSpawned.itachi) spawnSoloBoss('itachi', '曉・宇智波鼬', { hp: 9500, speed: 178, damage: 34, radius: 34, xp: 180, alertColor: '#ef4444' });
-    if (s.t >= 601 && !s.bossSpawned.pain) spawnSoloBoss('pain', '神・佩恩（長門）', { hp: 28000, speed: 101, damage: 42, radius: 38, xp: 400, alertColor: '#c084fc' });
+    if (s.t >= 180 && !s.bossSpawned.gaara) spawnSoloBoss('gaara', '砂瀑之我愛羅', { hp: 2600, speed: 210, damage: 22, radius: 34, xp: 60, alertColor: '#f59e0b' });
+    if (s.t >= 300 && !s.bossSpawned.orochimaru) spawnSoloBoss('orochimaru', '傳說三忍・大蛇丸', { hp: 5800, speed: 220, damage: 28, radius: 34, xp: 110, alertColor: '#a855f7' });
+    if (s.t >= 480 && !s.bossSpawned.itachi) spawnSoloBoss('itachi', '曉・宇智波鼬', { hp: 9500, speed: 230, damage: 34, radius: 34, xp: 180, alertColor: '#ef4444' });
+    if (s.t >= 601 && !s.bossSpawned.pain) spawnSoloBoss('pain', '神・佩恩（長門）', { hp: 28000, speed: 240, damage: 42, radius: 38, xp: 400, alertColor: '#c084fc' });
 
     const { dx, dy } = getMoveVector();
     p.moving = (dx !== 0 || dy !== 0);
